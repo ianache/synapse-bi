@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "5e33b8df-f465-4114-b589-6fd307f7ecdc",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\ianache\\Desktop\\DATA\\01-DOCUMENTOS\\01-PRODUCTOS\\BI-AI-Analytics\\.archify\\architecture-solution-20261015-000000\\candidate.json",
+  "output": "C:\\Users\\ianache\\Desktop\\DATA\\01-DOCUMENTOS\\01-PRODUCTOS\\BI-AI-Analytics\\architecture\\architecture-solution.html",
+  "specification": {
+    "sha256": "7741b320676b5249c3ab40ba5e42d1f2fc8392d723d288386efd501c05066812",
+    "bytes": 5330
+  },
+  "artifact": {
+    "sha256": "4ef926b3c9a277f1b846e03cf05360970d5d52d71376004c687d9007ec5533c0",
+    "bytes": 772635
+  }
+}

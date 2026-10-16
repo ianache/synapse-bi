@@ -1,0 +1,68 @@
+name: synapse-bi-study
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:18.6}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bi_admin
+      POSTGRES_DB: bi_analytics
+      POSTGRES_PASSWORD_FILE: /run/secrets/admin_password
+      POSTGRES_INITDB_ARGS: --data-checksums --auth-host=scram-sha-256
+      TZ: UTC
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      # Official PostgreSQL 18+ image uses a major-version subdirectory here.
+      - postgres_data:/var/lib/postgresql
+      - ./init:/docker-entrypoint-initdb.d:ro
+    secrets:
+      - admin_password
+      - reader_global_password
+      - reader_other_password
+    shm_size: 128mb
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          pg_isready -h 127.0.0.1 -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+          && psql -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -tAc
+          'SELECT count(*) FROM gold.case_study_manifest WHERE version = 1' | grep -qx 1
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  verify:
+    image: ${POSTGRES_IMAGE:-postgres:18.6}
+    profiles: [tools]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: [bash, /study/verify.sh]
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: bi_analytics
+    volumes:
+      - ./tests:/study:ro
+    secrets:
+      - admin_password
+      - reader_global_password
+      - reader_other_password
+
+volumes:
+  postgres_data:
+
+secrets:
+  admin_password:
+    file: ./.docker-secrets/admin_password.txt
+  reader_global_password:
+    file: ./.docker-secrets/reader_global_password.txt
+  reader_other_password:
+    file: ./.docker-secrets/reader_other_password.txt

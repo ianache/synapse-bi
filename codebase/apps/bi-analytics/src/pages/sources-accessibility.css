@@ -1,0 +1,35 @@
+/* Accessible secondary text retains the slate hierarchy without low contrast. */
+.sources-workspace .source-table-scroll:focus-visible {
+  outline: 2px solid #991b1b;
+  outline-offset: -2px;
+}
+.sources-workspace .source-muted,
+.sources-workspace .source-card-footer,
+.sources-workspace .source-table td small,
+.sources-workspace .source-form-card small,
+.sources-workspace .source-form-footer > span,
+.sources-workspace .source-help p,
+.sources-workspace .source-help li,
+.sources-workspace .source-help small,
+.sources-workspace .source-subhead,
+.sources-workspace .source-properties dt,
+.sources-workspace .source-observation-card > small,
+.sources-workspace .source-observation-counts span,
+.sources-workspace .source-object-tree h3 span,
+.sources-workspace .source-tabs button,
+.sources-workspace .source-table th,
+.sources-workspace .source-steps { color: #59677d; }
+.sources-workspace .source-steps .current { color: #991b1b; }
+.sources-workspace .source-tabs button[aria-selected=true] { color: #991b1b; }
+.sources-workspace .source-key { color: #4e5d76; }
+.sources-workspace .source-key.p { color: #835218; }
+.sources-workspace .source-key.f { color: #4c5b93; }
+.sources-workspace .source-key.u { color: #76508f; }
+.sources-workspace .source-form-card input:not([type=checkbox]),
+.sources-workspace .source-form-card textarea,
+.sources-workspace .source-form-card select { font-size: 13px; line-height: 1.5; }
+.sources-workspace .source-columns td:nth-child(2) code {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  font-size: 11px;
+}

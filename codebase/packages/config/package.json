@@ -1,0 +1,6 @@
+{
+  "name": "@bi-analytics/config",
+  "private": true,
+  "version": "0.1.0",
+  "exports": { "./tsconfig.base.json": "./tsconfig.base.json", "./vitest.setup": "./vitest.setup.ts" }
+}

@@ -1,0 +1,5 @@
+.secrets/
+.docker-secrets/
+.env
+backups/
+__pycache__/

@@ -1,0 +1,38 @@
+{
+  "name": "bi-ai-analytics-codebase",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace @bi-analytics/bi-analytics",
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest run",
+    "test:accessibility": "vitest run --config vitest.config.ts",
+    "test:smoke": "playwright test",
+    "test:api-integration": "playwright test --config playwright.api.config.ts",
+    "test:backend": "uv run --directory backend --extra test --frozen pytest",
+    "test:sources": "playwright test --config playwright.sources.config.ts",
+    "test:datasets": "playwright test --config playwright.datasets.config.ts",
+    "typecheck": "tsc --noEmit",
+    "storybook": "npm run storybook --workspace @bi-analytics/storybook",
+    "build-storybook": "npm run build-storybook --workspace @bi-analytics/storybook"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@axe-core/playwright": "^4.10.2",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.3",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "axe-core": "^4.10.2",
+    "jsdom": "^25.0.1",
+    "@playwright/test": "^1.49.1",
+    "playwright": "^1.49.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  }
+}

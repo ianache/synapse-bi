@@ -1,0 +1,8 @@
+{
+  "name": "@bi-analytics/design-system",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@bi-analytics/tokens": "0.1.0", "react": "^19.0.0" }
+}

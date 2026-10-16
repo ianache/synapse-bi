@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "BI Analytics Platform - Arquitectura de solución",
+    "subtitle": "Contrato semántico gobernado, ingeniería complementaria y experiencias reutilizables",
+    "output": "architecture/architecture-solution.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "source_systems", "type": "external", "label": "Fuentes y contratos", "sublabel": "APIs · BD · archivos · eventos", "pos": [40, 300], "size": [155, 70] },
+    { "id": "source_connectivity", "type": "backend", "label": "Source Connectivity", "sublabel": "Conectores · esquema observado", "pos": [330, 300], "size": [170, 70] },
+    { "id": "data_engineering", "type": "backend", "label": "Data Engineering", "sublabel": "CDC · calidad · historización · jobs", "pos": [480, 500], "size": [175, 70] },
+    { "id": "semantic_governance", "type": "backend", "label": "Semantic Governance", "sublabel": "Catálogo · KPI · modelos · lineage", "pos": [700, 300], "size": [185, 70] },
+    { "id": "analytical_serving", "type": "backend", "label": "Analytical Serving", "sublabel": "Consultas · agregaciones · cachés", "pos": [1000, 300], "size": [175, 70] },
+    { "id": "visualization", "type": "frontend", "label": "Visualization & Experience", "sublabel": "Dashboards · APIs · exportaciones", "pos": [1220, 300], "size": [190, 70] },
+    { "id": "ai_analytics", "type": "backend", "label": "AI Analytics", "sublabel": "Grounding · explicación · citas", "pos": [1015, 140], "size": [190, 70] },
+    { "id": "tenant_access", "type": "security", "label": "Tenant & Access Governance", "sublabel": "Identidad · políticas · auditoría", "pos": [700, 90], "size": [205, 70] },
+    { "id": "design_system", "type": "frontend", "label": "Design System", "sublabel": "Atomic Design · librería reusable", "pos": [1220, 500], "size": [190, 70] },
+    { "id": "claude_design", "type": "external", "label": "Claude Design", "sublabel": "Diseño y documentación solicitados", "pos": [800, 500], "size": [175, 70] },
+    { "id": "users", "type": "external", "label": "Usuarios y productos", "sublabel": "Consumen experiencias autorizadas", "pos": [1490, 300], "size": [190, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Data plane", "wraps": ["source_connectivity", "data_engineering", "analytical_serving", "visualization", "ai_analytics"] },
+    { "kind": "region", "label": "Control plane", "wraps": ["tenant_access", "semantic_governance"] }
+  ],
+  "connections": [
+    { "id": "source-to-connectivity", "from": "source_systems", "to": "source_connectivity", "label": "ingesta", "variant": "emphasis" },
+    { "id": "connectivity-to-engineering", "from": "source_connectivity", "to": "data_engineering", "label": "esquema y datos" },
+    { "id": "connectivity-to-semantic", "from": "source_connectivity", "to": "semantic_governance", "label": "directo cuando aplica", "variant": "dashed" },
+    { "id": "engineering-to-semantic", "from": "data_engineering", "to": "semantic_governance", "label": "dataset preparado", "variant": "emphasis", "fromSide": "top", "toSide": "bottom", "route": "orthogonal-v" },
+    { "id": "semantic-to-serving", "from": "semantic_governance", "to": "analytical_serving", "label": "consulta publicada", "variant": "emphasis" },
+    { "id": "serving-to-visualization", "from": "analytical_serving", "to": "visualization", "label": "salida" },
+    { "id": "serving-to-ai", "from": "analytical_serving", "to": "ai_analytics", "label": "contexto autorizado", "variant": "security" },
+    { "id": "tenant-to-semantic", "from": "tenant_access", "to": "semantic_governance", "label": "publicación y políticas", "variant": "security" },
+    { "id": "tenant-to-serving", "from": "tenant_access", "to": "analytical_serving", "label": "tenant scope", "variant": "security" },
+    { "id": "tenant-to-ai", "from": "tenant_access", "to": "ai_analytics", "label": "identidad y autorización", "variant": "security" },
+    { "id": "design-to-visualization", "from": "design_system", "to": "visualization", "label": "componentes publicados", "variant": "dashed" },
+    { "id": "claude-to-design", "from": "claude_design", "to": "design_system", "label": "tokens y especificaciones", "variant": "dashed" },
+    { "id": "visualization-to-users", "from": "visualization", "to": "users", "label": "consumo", "variant": "emphasis" },
+    { "id": "ai-to-users", "from": "ai_analytics", "to": "users", "label": "respuestas con lineage", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Contrato principal", "items": ["Semantic Governance define el significado de negocio", "Dashboards, APIs, exportaciones e IA consumen modelos publicados"] },
+    { "dot": "emerald", "title": "Preparación selectiva", "items": ["Data Engineering y Medallion se activan por necesidad", "La fuente directa sigue siendo válida cuando es suficiente"] },
+    { "dot": "rose", "title": "Seguridad transversal", "items": ["Tenant es un límite de seguridad, no sólo un filtro", "Políticas aplican a consultas, cachés, exportaciones, jobs e IA"] },
+    { "dot": "violet", "title": "Experiencia reusable", "items": ["Atomic Design estructura el Design System", "La librería de componentes se comparte entre productos"] }
+  ]
+}

@@ -1,0 +1,185 @@
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, expect, it, vi } from 'vitest'
+import { DatasetsRepository } from '../../adapters/datasetsRepository'
+import { SourcesRepository, type Source, type Observation } from '../../adapters/sourcesRepository'
+import { ApiRequestError } from '../../adapters/apiRepository'
+import { DatasetForm } from './DatasetForm'
+import { dataset, draft } from './testFixtures'
+
+afterEach(() => { cleanup(); vi.restoreAllMocks() })
+function setup(edit = false) {
+  const repository = new DatasetsRepository()
+  const sourceRepository = new SourcesRepository()
+  vi.spyOn(repository, 'me').mockResolvedValue({ scopes: ['datasets:read', 'datasets:write', 'sources:read'] })
+  const source: Source = { id: 's1', name: 'Laboratorio', description: '', status: 'connected', testedAt: null, createdAt: dataset.createdAt, version: 1, credentialConfigured: true,
+    host: '127.0.0.1', port: 55432, database: 'test', username: 'reader', tlsMode: 'disable', laboratory: true, schemas: ['gold'] }
+  vi.spyOn(sourceRepository, 'list').mockResolvedValue({ items: [source, { ...source, id: 's2', name: 'Otra fuente' }] })
+  const observation: Observation = { id: 'o1', sequence: 1, sourceVersion: 1, createdAt: dataset.createdAt, status: 'success', errorCode: null, tables: 1, views: 1,
+    snapshot: { serverVersion: 180006, schemas: ['gold'], objects: [
+      { schema: 'gold', name: 'fact_sales', kind: 'table', comment: null, columns: [...dataset.selectedColumns, { ...dataset.selectedColumns[0], name: 'sales_line_key', position: 2 }], constraints: dataset.sourceConstraints },
+      { schema: 'gold', name: 'sales_view', kind: 'view', comment: null, columns: dataset.selectedColumns, constraints: [] }] } }
+  vi.spyOn(sourceRepository, 'history').mockResolvedValue({ items: [observation] })
+  vi.spyOn(sourceRepository, 'observation').mockResolvedValue(observation)
+  render(<DatasetForm repository={repository} sourceRepository={sourceRepository} dataset={edit ? dataset : undefined} initialOrigin={draft.origin} />)
+  return { repository, sourceRepository }
+}
+async function step2() {
+  await userEvent.click(await screen.findByLabelText('Seleccionar columna tenant_id'))
+  await userEvent.click(screen.getByRole('button', { name: 'Continuar a metadatos' }))
+  await userEvent.type(screen.getByLabelText('Nombre del dataset'), 'Ventas nuevas')
+}
+it('saves incomplete draft with null placeholders and no invented approval', async () => {
+  const { repository } = setup()
+  const create = vi.spyOn(repository, 'create').mockResolvedValue(dataset)
+  await step2()
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await waitFor(() => expect(create).toHaveBeenCalledTimes(1))
+  expect(create.mock.calls[0][0]).toMatchObject({ saveAs: 'draft', governance: { owner: null, classification: null, freshnessExpectation: null }, medallion: null })
+})
+it('requires governance for registration but not for draft', async () => {
+  setup()
+  await step2()
+  expect(screen.getByRole('button', { name: 'Registrar dataset' })).toBeDisabled()
+  for (const label of ['Responsable declarado', 'Clasificación declarada', 'Expectativa de frescura']) await userEvent.type(screen.getByLabelText(label), 'Declarado')
+  expect(screen.getByRole('button', { name: 'Registrar dataset' })).toBeEnabled()
+})
+it('requires explicit prepared inputs/process and optional Medallion declarations', async () => {
+  setup()
+  await userEvent.selectOptions(await screen.findByLabelText('Tipo de dataset'), 'prepared')
+  await step2()
+  for (const label of ['Responsable declarado', 'Clasificación declarada', 'Expectativa de frescura']) await userEvent.type(screen.getByLabelText(label), 'Declarado')
+  expect(screen.getByRole('button', { name: 'Registrar dataset' })).toBeDisabled()
+  await userEvent.type(screen.getByLabelText('Referencia del proceso'), 'Job existente')
+  await userEvent.selectOptions(screen.getByLabelText('Entrada · Fuente'), 's1')
+  await userEvent.selectOptions(await screen.findByLabelText('Entrada · Observación'), 'o1')
+  await userEvent.selectOptions(await screen.findByLabelText('Entrada · Objeto'), JSON.stringify(['gold', 'sales_view']))
+  await userEvent.click(screen.getByRole('button', { name: 'Añadir input observado' }))
+  expect(screen.getByRole('button', { name: 'Registrar dataset' })).toBeEnabled()
+  await userEvent.click(screen.getByLabelText('Declarar alcance Medallion'))
+  expect(screen.getByRole('button', { name: 'Registrar dataset' })).toBeDisabled()
+  for (const label of ['Descripción del esquema', 'Política de particiones', 'Política de retención', 'Calidad mínima declarada', 'Política de tenant']) await userEvent.type(screen.getByLabelText(label), 'Declarado')
+  expect(screen.getByRole('button', { name: 'Registrar dataset' })).toBeEnabled()
+})
+it('clears selection when origin changes', async () => {
+  setup()
+  await userEvent.click(await screen.findByLabelText('Seleccionar columna tenant_id'))
+  expect(screen.getByRole('button', { name: 'Continuar a metadatos' })).toBeEnabled()
+  await userEvent.selectOptions(screen.getByLabelText('Origen · Fuente'), 's2')
+  expect(screen.getByRole('button', { name: 'Continuar a metadatos' })).toBeDisabled()
+  expect(screen.queryByLabelText('Seleccionar columna tenant_id')).not.toBeInTheDocument()
+})
+it('preserves content and key on uncertain retry; changed content uses a new key and pending blocks duplicates', async () => {
+  const { repository } = setup()
+  const create = vi.spyOn(repository, 'create').mockRejectedValue(new Error('Red no disponible'))
+  await step2()
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await screen.findByText('Red no disponible')
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await waitFor(() => expect(create).toHaveBeenCalledTimes(2))
+  expect(create.mock.calls[0][1]).toBe(create.mock.calls[1][1])
+  await userEvent.type(screen.getByLabelText('Nombre del dataset'), ' modificado')
+  create.mockReturnValue(new Promise(() => {}))
+  await userEvent.dblClick(screen.getByRole('button', { name: 'Guardar borrador' }))
+  expect(create).toHaveBeenCalledTimes(3)
+  expect(create.mock.calls[2][1]).not.toBe(create.mock.calls[0][1])
+  expect(screen.getByLabelText('Nombre del dataset')).toHaveValue('Ventas nuevas modificado')
+})
+it('locks edit origin/type and preserves local edits on 412', async () => {
+  const { repository } = setup(true)
+  const update = vi.spyOn(repository, 'update').mockRejectedValue(new ApiRequestError(412, 'version_conflict', 'El dataset cambió'))
+  await screen.findByLabelText('Seleccionar columna tenant_id')
+  expect(screen.getByLabelText('Tipo de dataset')).toBeDisabled()
+  expect(screen.getByLabelText('Origen · Fuente')).toBeDisabled()
+  await userEvent.click(screen.getByRole('button', { name: 'Continuar a metadatos' }))
+  await userEvent.type(screen.getByLabelText('Nombre del dataset'), ' local')
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
+  expect(screen.getByLabelText('Nombre del dataset')).toHaveValue('Ventas local')
+  expect(screen.getByRole('button', { name: 'Recargar versión actual (descarta cambios locales)' })).toBeInTheDocument()
+})
+
+it('does not navigate from an unmounted form when an earlier creation completes', async () => {
+  const { repository } = setup()
+  let resolve!: (result: typeof dataset) => void
+  const create = vi.spyOn(repository, 'create').mockReturnValue(new Promise(r => { resolve = r }))
+  await step2()
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await waitFor(() => expect(create).toHaveBeenCalledTimes(1))
+  cleanup()
+  window.history.replaceState({}, '', '/datasets/nuevo?current=second')
+  setup()
+  await step2()
+  await userEvent.type(screen.getByLabelText('Nombre del dataset'), ' segundo')
+  await act(async () => resolve(dataset))
+  expect(window.location.pathname + window.location.search).toBe('/datasets/nuevo?current=second')
+  expect(screen.getByLabelText('Nombre del dataset')).toHaveValue('Ventas nuevas segundo')
+})
+
+it('makes 412 reload exclusive and blocks edits, saves and repeated reload until it finishes', async () => {
+  const { repository } = setup(true)
+  vi.spyOn(repository, 'update').mockRejectedValue(new ApiRequestError(412, 'version_conflict', 'El dataset cambió'))
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  let resolve!: (result: typeof dataset) => void
+  const get = vi.spyOn(repository, 'get').mockReturnValue(new Promise(r => { resolve = r }))
+  await screen.findByLabelText('Seleccionar columna tenant_id')
+  await userEvent.click(screen.getByRole('button', { name: 'Continuar a metadatos' }))
+  await userEvent.type(screen.getByLabelText('Nombre del dataset'), ' local')
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  const reload = await screen.findByRole('button', { name: 'Recargar versión actual (descarta cambios locales)' })
+  await userEvent.click(reload)
+  expect(screen.getByLabelText('Nombre del dataset')).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Guardar borrador' })).toBeDisabled()
+  expect(reload).toBeDisabled()
+  await userEvent.click(reload)
+  expect(get).toHaveBeenCalledTimes(1)
+  await act(async () => resolve({ ...dataset, name: 'Server version two', version: 2 }))
+  expect(screen.getByLabelText('Nombre del dataset')).toBeEnabled()
+  expect(screen.getByLabelText('Nombre del dataset')).toHaveValue('Server version two')
+})
+
+it('ignores a 412 reload completing after leaving its form', async () => {
+  const { repository } = setup(true)
+  vi.spyOn(repository, 'update').mockRejectedValue(new ApiRequestError(412, 'version_conflict', 'El dataset cambió'))
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  let resolve!: (result: typeof dataset) => void
+  vi.spyOn(repository, 'get').mockReturnValue(new Promise(r => { resolve = r }))
+  await screen.findByLabelText('Seleccionar columna tenant_id')
+  await userEvent.click(screen.getByRole('button', { name: 'Continuar a metadatos' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Recargar versión actual (descarta cambios locales)' }))
+  cleanup()
+  window.history.replaceState({}, '', '/datasets/nuevo?reload=departed')
+  setup()
+  await step2()
+  await act(async () => resolve({ ...dataset, name: 'Obsolete reload', version: 2 }))
+  expect(screen.getByLabelText('Nombre del dataset')).toHaveValue('Ventas nuevas')
+  expect(window.location.search).toBe('?reload=departed')
+})
+
+it('retains the key for normalized-equivalent content and reordered selections after uncertain creation', async () => {
+  const { repository } = setup()
+  const create = vi.spyOn(repository, 'create').mockRejectedValue(new Error('Resultado incierto'))
+  await step2()
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await screen.findByText('Resultado incierto')
+  await userEvent.type(screen.getByLabelText('Nombre del dataset'), ' ')
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await waitFor(() => expect(create).toHaveBeenCalledTimes(2))
+  expect(create.mock.calls[1][0]).toEqual(create.mock.calls[0][0])
+  expect(create.mock.calls[1][1]).toBe(create.mock.calls[0][1])
+  await userEvent.click(screen.getByRole('button', { name: '← Volver al origen' }))
+  await userEvent.click(screen.getByLabelText('Seleccionar columna sales_line_key'))
+  await userEvent.click(screen.getByRole('button', { name: 'Continuar a metadatos' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await waitFor(() => expect(create).toHaveBeenCalledTimes(3))
+  expect(create.mock.calls[2][1]).not.toBe(create.mock.calls[1][1])
+  await userEvent.click(screen.getByRole('button', { name: '← Volver al origen' }))
+  await userEvent.click(screen.getByLabelText('Seleccionar columna tenant_id'))
+  await userEvent.click(screen.getByLabelText('Seleccionar columna tenant_id'))
+  await userEvent.click(screen.getByRole('button', { name: 'Continuar a metadatos' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  await waitFor(() => expect(create).toHaveBeenCalledTimes(4))
+  expect(create.mock.calls[3][0]).toEqual(create.mock.calls[2][0])
+  expect(create.mock.calls[3][1]).toBe(create.mock.calls[2][1])
+})

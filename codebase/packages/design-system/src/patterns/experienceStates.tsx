@@ -1,0 +1,2 @@
+export type ExperienceState = 'idle' | 'loading' | 'success' | 'empty' | 'error' | 'stale' | 'unauthorized' | 'disabled'
+export function ExperienceStateMessage({ state, onRetry }: { state: ExperienceState; onRetry?: () => void }) { if (state === 'success') return null; return <div role={state === 'error' ? 'alert' : 'status'} data-state={state}>{state}{state === 'error' && onRetry && <button onClick={onRetry}>Retry</button>}</div> }

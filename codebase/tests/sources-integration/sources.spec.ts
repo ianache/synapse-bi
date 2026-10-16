@@ -1,0 +1,82 @@
+import { test, expect } from '@playwright/test'
+import AxeBuilder from '@axe-core/playwright'
+import { readFileSync, mkdirSync } from 'node:fs'
+import path from 'node:path'
+
+// Runtime fixture only. Never included in traces, screenshots or console output.
+const password = readFileSync(path.resolve('case-study/.docker-secrets/reader_global_password.txt'), 'utf8').trim()
+const artifacts = path.resolve('test-results/source-screens')
+
+test.beforeEach(async ({ page }) => {
+  // Keep acceptance tests independent of third-party font availability.
+  await page.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, route => route.abort())
+})
+
+test('PostgreSQL source lifecycle, real schema and responsive accessible screens', async ({ page }) => {
+  const consoleErrors: string[] = []
+  page.on('pageerror', error => consoleErrors.push(error.message))
+  await page.goto('/fuentes', { waitUntil: 'domcontentloaded' })
+  await expect(page.getByRole('heading', { name: 'Conecta y observa tus fuentes' })).toBeVisible()
+  await page.getByRole('link', { name: 'Registrar fuente', exact: true }).click()
+  const name = `Retail Gold · E2E ${Date.now()}`
+  await page.getByLabel('Nombre de la fuente').fill(name)
+  await page.getByLabel('Contraseña', { exact: true }).fill(password)
+  await expect(page.getByRole('button', { name: 'Registrar fuente', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Probar conexión', exact: true }).click()
+  await expect(page.getByText(/Conexión validada/)).toBeVisible()
+  await page.getByLabel('Base de datos', { exact: true }).fill('bi_analytics_changed')
+  await expect(page.getByRole('button', { name: 'Registrar fuente', exact: true })).toBeDisabled()
+  await page.getByLabel('Base de datos', { exact: true }).fill('bi_analytics')
+  await page.getByRole('button', { name: 'Probar conexión', exact: true }).click()
+  await expect(page.getByText(/Conexión validada/)).toBeVisible()
+  await page.getByRole('button', { name: 'Registrar fuente', exact: true }).click()
+  await expect(page.getByRole('heading', { name, exact: true })).toBeVisible()
+  const detailUrl = page.url()
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await expect(page.getByText('Configurada · no visible')).toBeVisible()
+  await page.getByRole('button', { name: 'Observar esquema', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Explorar esquema · gold' })).toBeVisible()
+  await expect(page.getByText('12 tablas y 4 vistas', { exact: false })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'fact_sales', exact: true })).toBeVisible()
+  await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(16)
+  await page.getByRole('tab', { name: 'Claves y relaciones (6)' }).click()
+  await expect(page.getByRole('tabpanel').getByText('(tenant_id, sales_line_key)', { exact: true })).toBeVisible()
+  await expect(page.getByRole('tabpanel').locator('.source-constraint .source-chip', { hasText: /^FK$/ })).toHaveCount(6)
+  await page.getByRole('tab', { name: 'Columnas', exact: true }).click()
+  await page.getByRole('region', { name: /Tabla de columnas/ }).focus()
+  await page.keyboard.press('ArrowRight')
+  await expect.poll(() => page.getByRole('region', { name: /Tabla de columnas/ }).evaluate(element => element.scrollLeft)).toBeGreaterThan(0)
+  await page.getByRole('region', { name: /Tabla de columnas/ }).evaluate(element => { element.scrollLeft = 0 })
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
+  mkdirSync(artifacts, { recursive: true })
+  await page.screenshot({ path: path.join(artifacts, 'schema-desktop.png'), fullPage: true })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await page.screenshot({ path: path.join(artifacts, 'schema-mobile.png'), fullPage: true })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto(detailUrl, { waitUntil: 'domcontentloaded' })
+  await expect(page.getByRole('heading', { name, exact: true })).toBeVisible()
+  await page.screenshot({ path: path.join(artifacts, 'detail-desktop.png'), fullPage: true })
+  await page.getByRole('link', { name: 'Todas las fuentes', exact: false }).click()
+  await page.getByRole('textbox', { name: 'Buscar fuente' }).fill(name)
+  await expect(page.getByRole('link', { name, exact: true })).toBeVisible()
+  await page.screenshot({ path: path.join(artifacts, 'list-desktop.png'), fullPage: true })
+  expect(consoleErrors).toEqual([])
+})
+
+test('failed connection never enables registration; form is accessible', async ({ page }) => {
+  await page.goto('/fuentes/nueva', { waitUntil: 'domcontentloaded' })
+  await page.getByLabel('Nombre de la fuente').fill('No debe registrarse')
+  await page.getByLabel('Contraseña', { exact: true }).fill('deliberately-wrong-test-password')
+  await page.getByRole('button', { name: 'Probar conexión', exact: true }).click()
+  await expect(page.getByRole('alert')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Registrar fuente', exact: true })).toBeDisabled()
+  await page.getByLabel('Contraseña', { exact: true }).fill('')
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
+  mkdirSync(artifacts, { recursive: true })
+  await page.getByRole('heading', { name: 'Registrar fuente PostgreSQL' }).click()
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.screenshot({ path: path.join(artifacts, 'register-desktop.png'), fullPage: true })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})

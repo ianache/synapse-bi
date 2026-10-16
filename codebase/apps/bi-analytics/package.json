@@ -1,0 +1,8 @@
+{
+  "name": "@bi-analytics/bi-analytics",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": { "dev": "vite", "build": "vite build" },
+  "dependencies": { "@bi-analytics/design-system": "0.1.0", "@bi-analytics/tokens": "0.1.0", "react": "^19.0.0", "react-dom": "^19.0.0" }
+}

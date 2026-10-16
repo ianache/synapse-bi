@@ -1,0 +1,73 @@
+:root,
+.theme-light {
+  color-scheme: light;
+  --bi-color-bg: #f8f9ff;
+  --bi-color-canvas: #f8f9ff;
+  --bi-color-surface-dim: #cbdbf5;
+  --bi-color-surface-bright: #f8f9ff;
+  --bi-color-surface: #ffffff;
+  --bi-color-surface-container-lowest: #ffffff;
+  --bi-color-surface-container-low: #eff4ff;
+  --bi-color-surface-container: #e5eeff;
+  --bi-color-surface-container-high: #dce9ff;
+  --bi-color-surface-container-highest: #d3e4fe;
+  --bi-color-text: #0b1c30;
+  --bi-color-muted: #59413e;
+  --bi-color-primary: #991b1b;
+  --bi-color-primary-strong: #760009;
+  --bi-color-on-primary: #ffffff;
+  --bi-color-secondary: #515f74;
+  --bi-color-secondary-container: #d5e3fd;
+  --bi-color-tertiary: #2f374c;
+  --bi-color-tertiary-container: #464e64;
+  --bi-color-border: #e2e8f0;
+  --bi-color-outline: #8d706d;
+  --bi-color-outline-variant: #e1bfbb;
+  --bi-color-positive: #15803d;
+  --bi-color-positive-container: #f0fdf4;
+  --bi-color-warning: #b45309;
+  --bi-color-warning-container: #fffbeb;
+  --bi-color-negative: #ba1a1a;
+  --bi-color-negative-container: #fef2f2;
+  --bi-color-info: #0284c7;
+  --bi-color-info-container: #f0f9ff;
+  --bi-font-headline: 'Hanken Grotesk', Arial, sans-serif;
+  --bi-font-body: 'Plus Jakarta Sans', Arial, sans-serif;
+  --bi-space-1: 0.25rem;
+  --bi-space-2: 0.5rem;
+  --bi-space-3: 0.75rem;
+  --bi-space-4: 1rem;
+  --bi-space-6: 1.5rem;
+  --bi-space-8: 2rem;
+  --bi-space-12: 3rem;
+  --bi-radius-sm: 0.25rem;
+  --bi-radius-md: 0.5rem;
+  --bi-radius-lg: 1rem;
+  --bi-radius-xl: 1.5rem;
+  --bi-radius-full: 9999px;
+  --bi-shadow-card: 0 1px 3px rgb(11 28 48 / 8%);
+  --bi-shadow-raised: 0 8px 16px -4px rgb(15 23 42 / 6%), 0 4px 6px -2px rgb(15 23 42 / 3%);
+  --bi-shadow-overlay: 0 20px 25px -5px rgb(15 23 42 / 8%), 0 8px 10px -6px rgb(15 23 42 / 4%);
+  --bi-content-max-width: 1200px;
+}
+
+.theme-dark {
+  color-scheme: dark;
+  --bi-color-bg: #111827;
+  --bi-color-canvas: #0f172a;
+  --bi-color-surface: #1f2937;
+  --bi-color-surface-container: #24334a;
+  --bi-color-surface-container-high: #334155;
+  --bi-color-text: #f8fafc;
+  --bi-color-muted: #cbd5e1;
+  --bi-color-primary: #f87171;
+  --bi-color-primary-strong: #fecaca;
+  --bi-color-on-primary: #450a0a;
+  --bi-color-secondary: #cbd5e1;
+  --bi-color-border: #475569;
+  --bi-color-outline: #c7a9a6;
+  --bi-color-outline-variant: #704b49;
+  --bi-color-positive: #86efac;
+  --bi-color-warning: #fbbf75;
+  --bi-color-negative: #fca5a5;
+}
