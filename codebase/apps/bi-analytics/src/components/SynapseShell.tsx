@@ -12,10 +12,10 @@ export function AppLink({ to, children, ...props }: Omit<React.AnchorHTMLAttribu
   }}>{children}</a>
 }
 
-export function SynapseShell({ children, active, breadcrumb }: { children: ReactNode; active: 'explore' | 'dashboards' | 'sources' | 'datasets' | 'semantic'; breadcrumb: string }) {
-  const administration = active === 'sources' || active === 'datasets' || active === 'semantic'
-  const catalogAdministration = active === 'semantic' || active === 'datasets'
-  return <div className={`synapse bi-root${active === 'semantic' ? ' synapse-semantic' : active === 'datasets' ? ' synapse-datasets' : ''}`}>
+export function SynapseShell({ children, active, breadcrumb }: { children: ReactNode; active: 'explore' | 'dashboards' | 'sources' | 'datasets' | 'semantic' | 'models'; breadcrumb: string }) {
+  const administration = active === 'sources' || active === 'datasets' || active === 'semantic' || active === 'models'
+  const catalogAdministration = active === 'semantic' || active === 'datasets' || active === 'models'
+  return <div className={`synapse bi-root${active === 'models' ? ' synapse-semantic synapse-models' : active === 'semantic' ? ' synapse-semantic' : active === 'datasets' ? ' synapse-datasets' : ''}`}>
     <a href="#workspace" className="synapse-skip">Saltar al contenido</a>
     <aside className="synapse-sidebar" aria-label="Espacio de trabajo">
       <AppLink to="/explorar" className="synapse-brand"><span className="synapse-logo"><Icon name="chart" size={22} /></span><span><strong>Synapse BI</strong><small>Enterprise Analytics</small></span><span className="suite-tag">AI SUITE</span></AppLink>
@@ -26,6 +26,7 @@ export function SynapseShell({ children, active, breadcrumb }: { children: React
         <AppLink to="/dashboards" aria-current={active === 'dashboards' ? 'page' : undefined}><Icon name="grid" />Dashboards</AppLink>
         {catalogAdministration && <><span className="sc-nav-section">Administración de datos</span><AppLink to="/fuentes"><Icon name="server" />Fuentes de datos</AppLink><AppLink to="/datasets" aria-current={active === 'datasets' ? 'page' : undefined}><Icon name="database" />Datasets</AppLink></>}
         <AppLink to="/catalogo-semantico" aria-current={active === 'semantic' ? 'page' : undefined}><Icon name="database" />Catálogo semántico</AppLink>
+        <AppLink to="/modelos-semanticos" aria-current={active === 'models' ? 'page' : undefined}><Icon name="layers" />Modelos semánticos</AppLink>
         <span className="synapse-nav-future"><Icon name="receipt" />Glosario<small>Próximamente</small></span>
         <span className="synapse-nav-future"><Icon name="layers" />Lineage<small>Próximamente</small></span>
         {!catalogAdministration && <><AppLink to="/fuentes" aria-current={active === 'sources' ? 'page' : undefined}><Icon name="server" />Fuentes de datos</AppLink>
@@ -34,7 +35,7 @@ export function SynapseShell({ children, active, breadcrumb }: { children: React
       <div className="synapse-tenant"><Icon name="building" size={18} /><span><strong>Corporación Global S.A.</strong><small>Espacio de demostración</small></span></div>
     </aside>
     <div className="synapse-body">
-      <header className="synapse-topbar"><div className="synapse-breadcrumb"><AppLink to="/">Inicio</AppLink><span aria-hidden="true">/</span>{active === 'semantic' && <>Gobernanza semántica<span aria-hidden="true">/</span></>}{active === 'datasets' && <>Administración de datos<span aria-hidden="true">/</span></>}{breadcrumb}{active === 'semantic' && <span className="sc-badge">US-003</span>}</div><span className="synapse-demo">{active === 'semantic' ? 'Capa de definición en borrador' : administration ? 'Administración · Metadatos técnicos' : 'Vista previa · Datos de ejemplo'}</span>{active === 'datasets' && <button className="ds-export" disabled title="Exportación no disponible en este incremento"><Icon name="download" size={14} />Exportar · no disponible</button>}<div className="synapse-profile"><span className="synapse-avatar">{administration ? 'AD' : 'AR'}</span><span><strong>{administration ? 'Administración de datos' : 'Ana Rivas'}</strong><small>{active === 'semantic' ? 'Rol técnico · Modelado Semántico' : administration ? 'Conexiones y esquema' : 'Analista de negocio'}</small></span></div></header>
+      <header className="synapse-topbar"><div className="synapse-breadcrumb"><AppLink to="/">Inicio</AppLink><span aria-hidden="true">/</span>{(active === 'semantic' || active === 'models') && <>Gobernanza semántica<span aria-hidden="true">/</span></>}{active === 'datasets' && <>Administración de datos<span aria-hidden="true">/</span></>}{breadcrumb}{(active === 'semantic' || active === 'models') && <span className="sc-badge">{active === 'models' ? 'US-004' : 'US-003'}</span>}</div><span className="synapse-demo">{active === 'models' ? 'Modelos · Capturas explícitas' : active === 'semantic' ? 'Capa de definición en borrador' : administration ? 'Administración · Metadatos técnicos' : 'Vista previa · Datos de ejemplo'}</span>{active === 'datasets' && <button className="ds-export" disabled title="Exportación no disponible en este incremento"><Icon name="download" size={14} />Exportar · no disponible</button>}<div className="synapse-profile"><span className="synapse-avatar">{administration ? 'AD' : 'AR'}</span><span><strong>{administration ? 'Administración de datos' : 'Ana Rivas'}</strong><small>{active === 'semantic' ? 'Rol técnico · Modelado Semántico' : administration ? 'Conexiones y esquema' : 'Analista de negocio'}</small></span></div></header>
       <main id="workspace" tabIndex={-1} className="synapse-main">{children}</main>
       {active === 'semantic' && <footer className="sc-app-footer"><span><strong>Synapse BI</strong> — Suite de Analítica de Datos y Gobernanza Empresarial</span><span>Módulo: US-003 Catálogo Semántico · Entorno local</span></footer>}
     </div>
