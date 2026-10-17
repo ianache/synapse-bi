@@ -24,7 +24,7 @@ def test_v3_upgrade_is_additive_and_initialize_twice_is_noop(tmp_path):
     db.initialize()
     db.initialize()
     with db.connect() as conn:
-        assert conn.execute('SELECT MAX(version) FROM schema_migrations').fetchone()[0] == 4
+        assert conn.execute('SELECT MAX(version) FROM schema_migrations').fetchone()[0] == 5
         assert conn.execute('SELECT name FROM dashboards').fetchone()[0] == 'Existing'
         assert len(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'semantic_%'").fetchall()) == 6
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
