@@ -24,6 +24,9 @@ from .datasets.body_limit import DatasetBodyLimitMiddleware
 from .datasets.policy import MISSING_METADATA_PATHS
 from .datasets.router import dataset_router
 from .datasets.service import DatasetService
+from .semantic_catalog.router import semantic_catalog_router
+from .semantic_catalog.service import SemanticCatalogService
+from .semantic_catalog.body_limit import SemanticBodyLimitMiddleware
 
 logger = logging.getLogger("synapse_api")
 
@@ -48,6 +51,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.datasets = DatasetService(database)
     app.include_router(dataset_router(app.state.datasets))
     app.add_middleware(DatasetBodyLimitMiddleware)
+    app.state.semantic_catalog = SemanticCatalogService(database)
+    app.include_router(semantic_catalog_router(app.state.semantic_catalog))
+    app.add_middleware(SemanticBodyLimitMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.allowed_origins), allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], allow_headers=["Authorization", "Content-Type", "If-Match", "Idempotency-Key"], expose_headers=["ETag", "X-Request-ID", "Location"])
 
     def error_response(request, status, code, message, details=None):

@@ -13,6 +13,7 @@ bearer = HTTPBearer(auto_error=False)
 ALL_SCOPES = frozenset({"catalog:read", "queries:execute", "dashboards:read", "dashboards:write"})
 SOURCE_SCOPES = frozenset({"sources:read", "sources:write", "sources:observe"})
 DATASET_SCOPES = frozenset({"datasets:read", "datasets:write"})
+SEMANTIC_SCOPES = frozenset({"semantic:read", "semantic:write"})
 
 
 @dataclass(frozen=True)
@@ -31,8 +32,8 @@ class Authenticator:
 
     def development_token(self, persona: str) -> str:
         identities = {
-            "data-admin": ("admin", "demo-global", "Administrador de datos", ALL_SCOPES | SOURCE_SCOPES | DATASET_SCOPES),
-            "other-data-admin": ("other-admin", "demo-other", "Administrador de otro tenant", ALL_SCOPES | SOURCE_SCOPES | DATASET_SCOPES),
+            "data-admin": ("admin", "demo-global", "Administrador de datos", ALL_SCOPES | SOURCE_SCOPES | DATASET_SCOPES | SEMANTIC_SCOPES),
+            "other-data-admin": ("other-admin", "demo-other", "Administrador de otro tenant", ALL_SCOPES | SOURCE_SCOPES | DATASET_SCOPES | SEMANTIC_SCOPES),
             "analyst": ("ana", "demo-global", "Ana Rivas", ALL_SCOPES),
             "viewer": ("viewer", "demo-global", "Lector de ejemplo", ALL_SCOPES - {"dashboards:write"}),
             "other-tenant": ("otro", "demo-other", "Analista de otro tenant", ALL_SCOPES),

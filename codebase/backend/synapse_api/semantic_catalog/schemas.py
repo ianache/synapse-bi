@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Generic, TypeVar
 import unicodedata
 from uuid import UUID
 
@@ -136,3 +136,81 @@ class SaveKpiDefinition(Named):
 
 class CopyComponent(Named):
     pass
+
+
+class ReadMetadata(DTO):
+    id: str
+    version: int
+    created_at: str
+    updated_at: str
+    status: Literal['draft'] = 'draft'
+    governance_validation: Literal['pending'] = 'pending'
+    completeness: Literal['complete', 'incomplete']
+    missing_metadata: list[str]
+    warnings: list[Literal['binding_dataset_changed', 'binding_column_removed', 'binding_unavailable']]
+
+
+class Domain(SaveDomain, ReadMetadata):
+    pass
+
+
+class BindingSnapshot(DTO):
+    dataset_id: str
+    dataset_version: int
+    source_id: str
+    observation_id: str
+    schema_name: str = Field(alias='schema')
+    object: str
+    column: str
+    column_type: str
+
+
+class Component(SaveComponent, ReadMetadata):
+    copy_origin_id: str | None
+    protected: bool
+    consumer_count: int
+    binding_snapshot: BindingSnapshot | None
+    binding_status: Literal['absent', 'current', 'dataset_changed', 'column_removed', 'unavailable']
+
+
+class KpiDefinition(SaveKpiDefinition, ReadMetadata):
+    pass
+
+
+T = TypeVar('T')
+
+
+class CatalogPage(DTO, Generic[T]):
+    items: list[T]
+    total: int
+    limit: int
+    offset: int
+
+
+class Consumer(DTO):
+    id: str
+    name: str
+    version: int
+    domain_id: str
+
+
+class Pagination(DTO):
+    limit: int = Field(default=25, ge=1, le=100)
+    offset: int = Field(default=0, ge=0)
+
+
+class DomainFilters(Pagination):
+    q: str = Field(default='', max_length=100)
+
+
+class KpiFilters(DomainFilters):
+    domain_id: str | None = None
+
+    @field_validator('domain_id')
+    @classmethod
+    def valid_domain(cls, value):
+        return identifier(value) if value is not None else None
+
+
+class ComponentFilters(KpiFilters):
+    kind: Literal['dimension', 'measure'] | None = None
