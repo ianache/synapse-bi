@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { KpiWorkspace } from '../pages/KpiWorkspace'
 import { SourcesWorkspace } from '../pages/SourcesWorkspace'
 import { DatasetsWorkspace } from '../pages/datasets/DatasetsWorkspace'
+import { SemanticCatalogWorkspace } from '../pages/semantic-catalog/SemanticCatalogWorkspace'
 export function Routes() {
  const [location, setLocation] = useState({ path: window.location.pathname, search: window.location.search })
  const { path, search } = location
@@ -19,5 +20,6 @@ export function Routes() {
  if(path==='/dashboard')return <DashboardPage adapter={createMockSemanticAdapter()} />
  if(path === '/fuentes' || path.startsWith('/fuentes/'))return <SourcesWorkspace key={path} path={path} />
  if(path === '/datasets' || path.startsWith('/datasets/'))return <DatasetsWorkspace path={path} search={search} />
+ if(path === '/catalogo-semantico' || path.startsWith('/catalogo-semantico/'))return <SemanticCatalogWorkspace path={path} search={search} />
  return <KpiWorkspace path={path} />
 }

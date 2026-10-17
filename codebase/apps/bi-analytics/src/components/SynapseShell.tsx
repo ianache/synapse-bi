@@ -12,8 +12,8 @@ export function AppLink({ to, children, ...props }: Omit<React.AnchorHTMLAttribu
   }}>{children}</a>
 }
 
-export function SynapseShell({ children, active, breadcrumb }: { children: ReactNode; active: 'explore' | 'dashboards' | 'sources' | 'datasets'; breadcrumb: string }) {
-  const administration = active === 'sources' || active === 'datasets'
+export function SynapseShell({ children, active, breadcrumb }: { children: ReactNode; active: 'explore' | 'dashboards' | 'sources' | 'datasets' | 'semantic'; breadcrumb: string }) {
+  const administration = active === 'sources' || active === 'datasets' || active === 'semantic'
   return <div className="synapse bi-root">
     <a href="#workspace" className="synapse-skip">Saltar al contenido</a>
     <aside className="synapse-sidebar" aria-label="Espacio de trabajo">
@@ -22,7 +22,7 @@ export function SynapseShell({ children, active, breadcrumb }: { children: React
         <AppLink to="/" aria-current={window.location.pathname === '/' ? 'page' : undefined}><Icon name="home" />Inicio</AppLink>
         <AppLink to="/explorar" aria-current={active === 'explore' && window.location.pathname !== '/' ? 'page' : undefined}><Icon name="chart" />Explorar KPI</AppLink>
         <AppLink to="/dashboards" aria-current={active === 'dashboards' ? 'page' : undefined}><Icon name="grid" />Dashboards</AppLink>
-        <span className="synapse-nav-future"><Icon name="database" />Catálogo<small>Próximamente</small></span>
+        <AppLink to="/catalogo-semantico" aria-current={active === 'semantic' ? 'page' : undefined}><Icon name="database" />Catálogo semántico</AppLink>
         <span className="synapse-nav-future"><Icon name="receipt" />Glosario<small>Próximamente</small></span>
         <span className="synapse-nav-future"><Icon name="layers" />Lineage<small>Próximamente</small></span>
         <AppLink to="/fuentes" aria-current={active === 'sources' ? 'page' : undefined}><Icon name="server" />Fuentes de datos</AppLink>
