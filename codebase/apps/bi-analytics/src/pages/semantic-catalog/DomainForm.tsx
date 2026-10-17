@@ -9,7 +9,8 @@ export function DomainForm({repository, initial, onSaved}: {repository: Semantic
   return <DraftForm body={body} initial={initial} title={initial ? 'Editar dominio' : 'Crear dominio'} onSaved={onSaved}
     reload={initial ? () => repository.get('domains', initial.id) : undefined} onReload={item => setBody(input(item))}
     save={async (draft, key, version) => {
-      const saved = initial ? await repository.update('domains', {...initial, version: version!}, draft) : await repository.createDomain(draft, key)
+      if (initial) return repository.update('domains', {...initial, version: version!}, draft)
+      const saved = await repository.createDomain(draft, key)
       return repository.get('domains', saved.id)
     }}>
     <p>Nombre obligatorio. Descripción y responsable pueden quedar pendientes; guardar no aprueba el dominio.</p>

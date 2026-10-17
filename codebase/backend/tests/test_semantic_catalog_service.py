@@ -112,3 +112,24 @@ def test_names_are_unique_per_scope_and_filters_are_stable(tmp_path):
     assert error.value.code == 'name_conflict'
     assert service.list(user, 'domain', q='LOGÍSTICA')['total'] == 1
     assert service.list(user, 'domain', q='%')['items'] == []
+
+
+def test_semantic_editor_can_preserve_occluded_binding_but_cannot_remove_it(tmp_path):
+    from dataset_fixtures import seed_observation, draft_body
+    from synapse_api.datasets.schemas import SaveDataset
+    from synapse_api.datasets.service import DatasetService
+    db, service, admin = catalog(tmp_path)
+    source = seed_observation(db)
+    dataset = DatasetService(db).create(admin, SaveDataset(**draft_body(source)), 'dataset', 'r')
+    domain = service.create_domain(admin, SaveDomain(name='Logística'), 'domain', 'r')
+    component = service.create_component(admin, SaveComponent(name='Original', kind='measure', domainId=domain['id'],
+        binding={'datasetId': dataset.id, 'column': 'revenue "USD"'}), 'component', 'r')
+    editor = replace(admin, scopes=frozenset({'semantic:read', 'semantic:write'}))
+    saved = service.update(editor, 'component', component['id'], SaveComponent(name='Renamed', kind='measure', domainId=domain['id']), '"1"', 'r')
+    assert saved['name'] == 'Renamed' and saved['version'] == 2
+    assert saved['binding'] is None and saved['bindingSnapshot'] is None
+    visible = service.get(admin, 'component', component['id'])
+    assert visible['bindingSnapshot'] == component['bindingSnapshot']
+    with pytest.raises(ApiError) as denied:
+        service.update(editor, 'component', component['id'], SaveComponent(name='Renamed', kind='measure', domainId=domain['id'], binding=None), '"2"', 'r')
+    assert denied.value.status == 403

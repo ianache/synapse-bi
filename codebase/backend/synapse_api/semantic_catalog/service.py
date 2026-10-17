@@ -160,6 +160,10 @@ class SemanticCatalogService:
                 if if_match != f'"{row["version"]}"':
                     raise ApiError(412, 'version_conflict', 'El elemento cambió; revisa la versión actual.')
                 old_body = repo.body(kind, row)
+                # Omitted is preserve; explicit null is removal. A masked read must not
+                # force a semantic editor to reveal or remove physical metadata.
+                if kind == 'component' and 'binding' not in model.model_fields_set:
+                    body['binding'] = old_body['binding']
                 if kind != 'domain' and (body['domainId'] != row['domain_id'] or (kind == 'component' and body['kind'] != row['kind'])):
                     raise ApiError(422, 'invalid_reference', 'El dominio y tipo no pueden cambiar.')
                 self._validate(repo, kind, body)

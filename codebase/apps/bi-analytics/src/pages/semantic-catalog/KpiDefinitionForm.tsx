@@ -13,7 +13,7 @@ export function KpiDefinitionForm({repository, domains, components, initial, onS
   const [body, setBody] = useState(input(initial))
   return <DraftForm body={body} initial={initial} title={initial ? 'Editar definición KPI' : 'Crear definición KPI'} onSaved={onSaved}
     reload={initial ? () => repository.get('kpi-definitions', initial.id) : undefined} onReload={item => setBody(input(item))}
-    save={async (draft, key, version) => { const saved = initial ? await repository.update('kpi-definitions', {...initial, version: version!}, draft) : await repository.createKpi(draft, key); return repository.get('kpi-definitions', saved.id) }}>
+    save={async (draft, key, version) => { if (initial) return repository.update('kpi-definitions', {...initial, version: version!}, draft); const saved = await repository.createKpi(draft, key); return repository.get('kpi-definitions', saved.id) }}>
     <TextField label="Nombre" value={body.name} required maxLength={100} onChange={name => setBody({...body, name})} />
     <label>Dominio<select aria-label="Dominio" required disabled={!!initial} value={body.domainId} onChange={e => setBody({...body, domainId: e.target.value, dimensionIds: [], measureIds: []})}><option value="">Seleccionar dominio</option>{domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
     <fieldset><legend>Componentes reutilizables (opcionales en borrador)</legend>{components.filter(c => c.domainId === body.domainId).map(c => {

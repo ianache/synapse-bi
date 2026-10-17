@@ -83,7 +83,10 @@ de columnas, fórmulas ni sinónimos a un nombre físico.
 | CopyComponent | `name` obligatorio, con normalización y límite de nombre; ningún otro campo |
 
 Opcionales ausentes reciben defaults; PUT sustituye todos los campos editables,
-no es PATCH. Strings opcionales trim y vacío→null; description trim→""; formula
+no es PATCH. Excepción explícita de binding en PUT de componente: omitir el campo
+conserva el vínculo existente sin revelarlo; `binding:null` solicita retirarlo y
+requiere permisos de metadata. Evita que una lectura enmascarada impida editar
+metadatos semánticos. Strings opcionales trim y vacío→null; description trim→""; formula
 conserva interior y saltos de línea. Si ambas vigencias existen: validTo>=validFrom.
 Dimensión rechaza unit/aggregation no nulos. `kind`/`domainId` inmutables en PUT
 de componente; `domainId` inmutable en KPI. Copia conserva dominio/tipo, contenido

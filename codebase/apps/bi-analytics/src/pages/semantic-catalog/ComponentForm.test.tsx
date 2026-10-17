@@ -31,3 +31,15 @@ it('allows typing multiple synonyms without swallowing the separator', async () 
   await userEvent.type(field, 'Zona; Región')
   expect(field).toHaveValue('Zona; Región')
 })
+
+it('omits an occluded binding when saving unrelated metadata instead of requesting removal', async () => {
+  const repo = repository()
+  const hidden = {...measure, protected: false, bindingStatus: 'unavailable' as const}
+  const update = vi.spyOn(repo, 'update').mockResolvedValue(hidden)
+  vi.spyOn(repo, 'get').mockResolvedValue(hidden)
+  render(<ComponentForm repository={repo} domains={[domain]} initial={hidden} onSaved={() => {}} />)
+  await userEvent.click(screen.getByRole('button', {name: 'Guardar borrador'}))
+  await waitFor(() => expect(update).toHaveBeenCalledOnce())
+  expect(Object.hasOwn(update.mock.calls[0][2], 'binding')).toBe(false)
+  expect(screen.queryByLabelText('Declarar vínculo a datos (opcional)')).not.toBeInTheDocument()
+})
