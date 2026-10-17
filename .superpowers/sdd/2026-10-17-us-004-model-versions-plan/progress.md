@@ -32,4 +32,7 @@ HEAD lacks approved Stitch fixes — cost if wrong: extra baseline commit, no pa
 - Baseline commit282457b stores the41 transferred UI/doc files separately; master unchanged.
 - Task 1: complete (RED17fail/2pass → focused24pass; full backend166passed/1PGskip,51.58s; no DB manual migrated). DTOs/migration only; endpoints not yet present.
 - Task 2: complete (RED5missing modules → focused5passed; full backend171passed/1PGskip,97.59s). Large real catalog hits >1000 components and >8MiB without truncation. Shared-component fixture deduplicates a measure, despite historical test name mentioning dimension; same algorithm applies both kinds. No source connector invoked by production paths.
-- T3 in progress; T4 pending; T5 pending; T6 pending; T7 pending.
+- Task 3: complete (RED7missing service → focused7passed; full-suite checkpoint initially178pass/7future-API-RED/1skip because test collection overlapped T4 test creation; no legacy failure). Full green confirmed with T4:185passed/1skip,71.23s.
+- Task 4: complete (RED7HTTP404 → focused7passed,6.83s; full backend185passed/1PGskip,71.23s). Routes, scope matrix, current tenant, preview/PUT/clone/history/compare and real byte boundaries green; no publication paths.
+- Ruling: T5 route wiring moves alongside actual T6 workspace — avoids placeholder product screens — cost if wrong: T5 completion delayed until route integration; adapter can be verified independently.
+- T5 adapter in progress; T6 pending; T7 pending.
