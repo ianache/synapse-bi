@@ -224,7 +224,9 @@ Cobertura: spec§§1/4/5→T2/T3/T6; §6→T4/T5; §7→T3/T5/T6; §8→T6/T7;
 asignados a pruebas específicas. Nombres DTO/métodos se fijan en T1/T3 y API-004.
 Plan revisado por autor, no por humano ni revisión independiente.
 
-**Estado:** pendiente de revisión del usuario, API-004/DM-004 y método de ejecución.
+**Estado inicial:** pendiente de revisión del usuario, API-004/DM-004 y método de ejecución.
+Actualización 2026-10-17: usuario «plan aprobado y los contratos»; ejecución nativa
+en worktree aislado, revisión independiente final. Ledger de este plan registra avance.
 Recomendación: ejecución nativa con una revisión independiente final, pues las
 tareas comparten contrato/captura y requieren integración secuencial cuidadosa.
 Alternativa: subagentes por tarea con revisión antes de avanzar, mayor coste de contexto.

@@ -19,6 +19,9 @@ sources:
 
 # DM-004 — Propuesta de migración aditiva v5
 
+Actualización 2026-10-17: usuario aprobó este contrato junto con API-004 y el plan
+para ejecución local; no implica migración de DB manual ni aprobación productiva.
+
 ## Alcance y procedencia
 
 Modelo conceptual IMD-002 R-09 aceptado. Persistencia y estructura siguientes son

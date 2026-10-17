@@ -19,6 +19,10 @@ sources:
 
 # API-004 — Propuesta aditiva para revisión
 
+Actualización 2026-10-17: usuario aprobó este contrato junto con DM-004 y el plan
+para ejecución local. El estado draft y gate de revisión productiva se conservan;
+no se inventa verificador nominal ni autorización empresarial de producción.
+
 ## 1. Alcance y decisiones
 
 Primera entrega local, sin publicación ni ejecución. Las decisiones MD-01–06 son

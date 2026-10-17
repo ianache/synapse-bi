@@ -47,6 +47,14 @@ class ModelFilters(Pagination):
         return identifier(value) if value is not None else None
 
 
+class CompareFilters(StrictDTO):
+    left_draft_id: Uuid
+    right_draft_id: Uuid
+
+    _left = field_validator('left_draft_id')(identifier)
+    _right = field_validator('right_draft_id')(identifier)
+
+
 class DomainCapture(StrictDTO):
     id: str
     version: int = Field(ge=1)

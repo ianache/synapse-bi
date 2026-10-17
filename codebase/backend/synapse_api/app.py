@@ -27,6 +27,9 @@ from .datasets.service import DatasetService
 from .semantic_catalog.router import semantic_catalog_router
 from .semantic_catalog.service import SemanticCatalogService
 from .semantic_catalog.body_limit import SemanticBodyLimitMiddleware
+from .semantic_models.router import semantic_models_router
+from .semantic_models.service import SemanticModelsService
+from .semantic_models.body_limit import ModelsBodyLimitMiddleware
 
 logger = logging.getLogger("synapse_api")
 
@@ -54,6 +57,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.semantic_catalog = SemanticCatalogService(database)
     app.include_router(semantic_catalog_router(app.state.semantic_catalog))
     app.add_middleware(SemanticBodyLimitMiddleware)
+    app.state.semantic_models = SemanticModelsService(database)
+    app.include_router(semantic_models_router(app.state.semantic_models))
+    app.add_middleware(ModelsBodyLimitMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.allowed_origins), allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], allow_headers=["Authorization", "Content-Type", "If-Match", "Idempotency-Key"], expose_headers=["ETag", "X-Request-ID", "Location"])
 
     def error_response(request, status, code, message, details=None):
