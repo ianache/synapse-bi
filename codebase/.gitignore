@@ -3,5 +3,6 @@ dist
 storybook-static
 playwright-report
 test-results
+test-results-models
 **/.env.local
 **/.env.*.local

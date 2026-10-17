@@ -13,6 +13,7 @@
     "test:sources": "playwright test --config playwright.sources.config.ts",
     "test:datasets": "playwright test --config playwright.datasets.config.ts",
     "test:semantic-catalog": "playwright test --config playwright.semantic-catalog.config.ts",
+    "test:semantic-models": "playwright test --config playwright.semantic-models.config.ts",
     "typecheck": "tsc --noEmit",
     "storybook": "npm run storybook --workspace @bi-analytics/storybook",
     "build-storybook": "npm run build-storybook --workspace @bi-analytics/storybook"
