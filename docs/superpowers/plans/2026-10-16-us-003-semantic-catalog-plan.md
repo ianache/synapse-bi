@@ -15,6 +15,13 @@ plan; método nativo elegido, revisión independiente final**. T1 conserva su ga
 de revisión de contratos/pantallas nuevas: ningún código de producto antes de cerrarlo.
 Este documento no declara completa la historia madre ni gobierno productivo.
 
+Actualización de ejecución 2026-10-17: D07 autorizó implementar los contratos
+presentados en worktree aislado. T2–T6 y verificación técnica T7 terminadas;
+los gates T0/T1 anteriores se conservan como registro del plan, superados para
+ejecución local por D07, no como aprobación corporativa. Aceptación manual y
+decisión de merge/push siguen en manos del usuario. Evidencia y minor diferido en
+[ledger](../../../.superpowers/sdd/2026-10-16-us-003-semantic-catalog-plan/progress.md).
+
 ## Global Constraints
 
 - D01–D05 y R-01 a R-08 ya aceptadas: no volver a solicitarlas ni convertirlas en supuestos.
@@ -110,11 +117,11 @@ están propuestos en API-003, no aprobados por D06 que es anterior a esos artefa
 
 **Interfaces propuestas:** `SaveDomain`, `SaveComponent`, `SaveKpiDefinition` y sus DTO de lectura en schemas; `normalize_name(value: str) -> str`, `missing_metadata(kind: str, document: dict) -> list[str]` en policy; `apply_v4(connection: sqlite3.Connection) -> None` en migration. DTO finales según T1.
 
-- [ ] Escribir `test_minimum_drafts_and_missing_metadata`: aceptar dominio sólo con nombre; componentes/KPI con nombre y dominio; pendientes explícitos; `test_rejects_blank_name_unknown_fields_and_contract_limits`: vacío, tenant inyectado y cada límite exacto de API-003. Agregar `test_unicode_name_normalization` para NFC/casefold sin transformar fórmulas/columnas.
-- [ ] Escribir `test_v3_upgrade_is_additive_and_atomic`, `test_initialize_twice_is_noop`, `test_future_schema_rejected_before_changes` y `test_restore_copy_preserves_existing_records`: fuentes/datasets/KPI/dashboard/auditoría previos intactos; rollback ante fallo inyectado; copia restaurada legible.
-- [ ] Ejecutar `.venv\Scripts\python.exe -m pytest tests/test_semantic_catalog_policy.py tests/test_semantic_catalog_migration.py -v`; comprobar RED específico de nuevas reglas/migración.
-- [ ] Implementar DTO estrictos, reglas puras y migración transaccional; ampliar soporte de versiones de `Database.initialize()` sin saltarse migración v3 ni reescribir datos previos.
-- [ ] Repetir comando y exigir GREEN; commit acotado `feat: add semantic catalog drafts and additive schema`.
+- [x] Escribir `test_minimum_drafts_and_missing_metadata`: aceptar dominio sólo con nombre; componentes/KPI con nombre y dominio; pendientes explícitos; `test_rejects_blank_name_unknown_fields_and_contract_limits`: vacío, tenant inyectado y cada límite exacto de API-003. Agregar `test_unicode_name_normalization` para NFC/casefold sin transformar fórmulas/columnas.
+- [x] Escribir `test_v3_upgrade_is_additive_and_atomic`, `test_initialize_twice_is_noop`, `test_future_schema_rejected_before_changes` y `test_restore_copy_preserves_existing_records`: fuentes/datasets/KPI/dashboard/auditoría previos intactos; rollback ante fallo inyectado; copia restaurada legible.
+- [x] Ejecutar `.venv\Scripts\python.exe -m pytest tests/test_semantic_catalog_policy.py tests/test_semantic_catalog_migration.py -v`; comprobar RED específico de nuevas reglas/migración.
+- [x] Implementar DTO estrictos, reglas puras y migración transaccional; ampliar soporte de versiones de `Database.initialize()` sin saltarse migración v3 ni reescribir datos previos.
+- [x] Repetir comando y exigir GREEN; commit acotado `feat: add semantic catalog drafts and additive schema`.
 
 ## T3 — Agregado transaccional, vínculos, copia y consumidores
 
@@ -122,11 +129,11 @@ están propuestos en API-003, no aprobados por D06 que es anterior a esos artefa
 
 **Interfaces propuestas:** `SemanticCatalogService(database: Database)` con `create_domain(user, body, key, request_id) -> Domain`, `create_component(...) -> Component`, `create_kpi(...) -> KpiDefinition`, `get(user, kind, item_id) -> CatalogItem`, `list(user, filters) -> CatalogPage`, `update(user, kind, item_id, body, if_match, request_id) -> CatalogItem`, `copy_component(user, component_id, body, key, request_id) -> Component`, `consumers(user, component_id) -> ConsumerPage`. `user: Principal`, `key/request_id/item_id: str`, DTO/tipos finales definidos en schemas/T1. Métodos de repositorio reciben conexión y Principal; nunca abren una transacción independiente.
 
-- [ ] Escribir `test_custom_domain_shared_component_copy_changes_one_kpi`: dos KPI referencian la misma medida; edición directa rechazada; copia tiene origen y ningún consumidor; cambiar primer KPI mantiene referencias del segundo y definición original. Probar ausencia de referencias en borrador y múltiples copias.
-- [ ] Escribir `test_binding_snapshot_survives_dataset_edit`: retirar columna del dataset informa vínculo desactualizado sin reanclado; editar título de KPI conserva snapshot; cambiar vínculo valida selección vigente. `test_declared_reference_requires_visible_type_and_domain`: rechazar ID inexistente/ajeno/tipo incorrecto y política de dominio de T1, sin revelar datos.
-- [ ] Escribir `test_replay_does_not_duplicate_or_overwrite_later_edit`, `test_stale_version_cannot_overwrite`, `test_audit_failure_rolls_back`, `test_first_reference_races_component_update` y `test_aggregate_read_uses_one_snapshot`. Usar dos conexiones y barreras deterministas, no sleeps: sólo resultados serializables válidos; ninguna modificación posterior a protección. Si T0 acepta protección permanente, probarla tras retirar última referencia.
-- [ ] Ejecutar `.venv\Scripts\python.exe -m pytest tests/test_semantic_catalog_service.py tests/test_semantic_catalog_concurrency.py tests/test_semantic_catalog_restart.py -v`; comprobar RED. Implementar con `Database.connect(write=True)` y transacciones de lectura explícitas; resolver dataset autorizado dentro de la misma conexión. Escribir protección/referencias/replay/auditoría atómicamente, sin llamada al conector PostgreSQL.
-- [ ] Exigir GREEN y prueba de reinicio sobre base temporal: recuperar dominio/componentes/KPI, versiones, copia y replay; commit `feat: persist semantic definitions and safe component copies`.
+- [x] Escribir `test_custom_domain_shared_component_copy_changes_one_kpi`: dos KPI referencian la misma medida; edición directa rechazada; copia tiene origen y ningún consumidor; cambiar primer KPI mantiene referencias del segundo y definición original. Probar ausencia de referencias en borrador y múltiples copias.
+- [x] Escribir `test_binding_snapshot_survives_dataset_edit`: retirar columna del dataset informa vínculo desactualizado sin reanclado; editar título de KPI conserva snapshot; cambiar vínculo valida selección vigente. `test_declared_reference_requires_visible_type_and_domain`: rechazar ID inexistente/ajeno/tipo incorrecto y política de dominio de T1, sin revelar datos.
+- [x] Escribir `test_replay_does_not_duplicate_or_overwrite_later_edit`, `test_stale_version_cannot_overwrite`, `test_audit_failure_rolls_back`, `test_first_reference_races_component_update` y `test_aggregate_read_uses_one_snapshot`. Usar dos conexiones y barreras deterministas, no sleeps: sólo resultados serializables válidos; ninguna modificación posterior a protección. Si T0 acepta protección permanente, probarla tras retirar última referencia.
+- [x] Ejecutar `.venv\Scripts\python.exe -m pytest tests/test_semantic_catalog_service.py tests/test_semantic_catalog_concurrency.py tests/test_semantic_catalog_restart.py -v`; comprobar RED. Implementar con `Database.connect(write=True)` y transacciones de lectura explícitas; resolver dataset autorizado dentro de la misma conexión. Escribir protección/referencias/replay/auditoría atómicamente, sin llamada al conector PostgreSQL.
+- [x] Exigir GREEN y prueba de reinicio sobre base temporal: recuperar dominio/componentes/KPI, versiones, copia y replay; commit `feat: persist semantic definitions and safe component copies`.
 
 ## T4 — HTTP, permisos y errores seguros
 
@@ -134,11 +141,11 @@ están propuestos en API-003, no aprobados por D06 que es anterior a esos artefa
 
 **Interfaces:** `semantic_catalog_router(service: SemanticCatalogService) -> APIRouter`; middleware de límite según API-003; autorización basada en Principal y scopes ratificados en T1. Adaptar errores sin exponer payload ni rechazar silenciosamente faltantes permitidos.
 
-- [ ] Escribir pruebas parametrizadas de cada operación: sin token, scope insuficiente, tenant ajeno, referencia ajena, cuerpo inválido, creación/replay, copia, ETag/If-Match y errores definidos en API-003. `test_analyst_receives_no_new_management_scope` protege permisos actuales.
-- [ ] Agregar `test_chunked_body_limit_and_safe_errors`: límite real aun sin Content-Length o falseado; campos grandes y fórmulas no aparecen en errores/logs. `test_unavailable_storage_is_safe` devuelve respuesta prevista sin SQL/rutas internas.
-- [ ] Ejecutar `.venv\Scripts\python.exe -m pytest tests/test_semantic_catalog_api.py -v`; comprobar RED, luego conectar router/servicio, scopes locales y middleware sin ampliar CORS innecesariamente.
-- [ ] Repetir prueba y regresión `.venv\Scripts\python.exe -m pytest`; exigir GREEN. Comparar OpenAPI con API-003 y mantener `/kpis`, consultas y dashboards existentes sin cambios de significado.
-- [ ] Commit `feat: expose tenant-scoped semantic catalog API` con evidencias de seguridad por operación.
+- [x] Escribir pruebas parametrizadas de cada operación: sin token, scope insuficiente, tenant ajeno, referencia ajena, cuerpo inválido, creación/replay, copia, ETag/If-Match y errores definidos en API-003. `test_analyst_receives_no_new_management_scope` protege permisos actuales.
+- [x] Agregar `test_chunked_body_limit_and_safe_errors`: límite real aun sin Content-Length o falseado; campos grandes y fórmulas no aparecen en errores/logs. `test_unavailable_storage_is_safe` devuelve respuesta prevista sin SQL/rutas internas.
+- [x] Ejecutar `.venv\Scripts\python.exe -m pytest tests/test_semantic_catalog_api.py -v`; comprobar RED, luego conectar router/servicio, scopes locales y middleware sin ampliar CORS innecesariamente.
+- [x] Repetir prueba y regresión `.venv\Scripts\python.exe -m pytest`; exigir GREEN. Comparar OpenAPI con API-003 y mantener `/kpis`, consultas y dashboards existentes sin cambios de significado.
+- [x] Commit `feat: expose tenant-scoped semantic catalog API` con evidencias de seguridad por operación.
 
 ## T5 — Cliente tipado y control de respuestas asíncronas
 
@@ -146,11 +153,11 @@ están propuestos en API-003, no aprobados por D06 que es anterior a esos artefa
 
 **Interfaces:** `SemanticCatalogRepository` con `list`, `get`, `createDomain`, `createComponent`, `createKpi`, `update`, `copyComponent`, `consumers`, `me`; tipos equivalentes a T1/T4. Consultas aceptan `AbortSignal`; altas/copias reciben clave estable por intento lógico; actualización envía versión de la ficha. `useSemanticCatalogResource<T>(load: (signal: AbortSignal) => Promise<T>, key: string)` devuelve `{data?, error?, loading, refresh}`.
 
-- [ ] Escribir `serializes_contract_and_preconditions`, `retains_same_key_after_uncertain_create`, `does_not_apply_out_of_order_response` y `aborts_old_resource_on_navigation`: verificar URL/headers/body exactos, error tipado, clave reutilizada sólo con el mismo contenido y ninguna respuesta antigua en la ficha nueva.
-- [ ] Ejecutar `npm test -- apps/bi-analytics/src/adapters/semanticCatalogRepository.test.ts apps/bi-analytics/src/hooks/useSemanticCatalogResource.test.tsx`; comprobar RED.
-- [ ] Implementar sobre ApiRepository existente, sin segundo sistema de autenticación ni fallback silencioso a fixtures. Tras replay obtener ficha vigente cuando corresponda, sin sustituirla por respuesta histórica de creación.
-- [ ] Repetir comando y `npm run typecheck`; exigir GREEN, sin casts que oculten diferencias entre DTO y tipos.
-- [ ] Commit `feat: add typed semantic catalog client`.
+- [x] Escribir `serializes_contract_and_preconditions`, `retains_same_key_after_uncertain_create`, `does_not_apply_out_of_order_response` y `aborts_old_resource_on_navigation`: verificar URL/headers/body exactos, error tipado, clave reutilizada sólo con el mismo contenido y ninguna respuesta antigua en la ficha nueva.
+- [x] Ejecutar `npm test -- apps/bi-analytics/src/adapters/semanticCatalogRepository.test.ts apps/bi-analytics/src/hooks/useSemanticCatalogResource.test.tsx`; comprobar RED.
+- [x] Implementar sobre ApiRepository existente, sin segundo sistema de autenticación ni fallback silencioso a fixtures. Tras replay obtener ficha vigente cuando corresponda, sin sustituirla por respuesta histórica de creación.
+- [x] Repetir comando y `npm run typecheck`; exigir GREEN, sin casts que oculten diferencias entre DTO y tipos.
+- [x] Commit `feat: add typed semantic catalog client`.
 
 ## T6 — Recorrido UI completo
 
@@ -158,11 +165,11 @@ están propuestos en API-003, no aprobados por D06 que es anterior a esos artefa
 
 **Interfaces:** `SemanticCatalogWorkspace({path, search}: {path: string; search: string})` coordina cliente/estado; formularios reciben DTO inicial y callbacks tipados; `CopyComponentDialog` devuelve copia creada, no reasigna KPI por su cuenta. Ruta propuesta `/catalogo-semantico`, sin interceptar `/kpis`, `/fuentes` ni `/datasets`.
 
-- [ ] Escribir tests de dominio personalizado «Logística», altas mínimas, pendientes visibles, recuperar borradores y estados carga/vacío/403/503/duplicado/conflicto/protegido. `does_not_confuse_documented_formula_with_execution`: no mostrar valor calculado ni publicación.
-- [ ] Escribir `copy_requires_explicit_kpi_reassignment`, `stale_binding_remains_visible`, `late_save_does_not_navigate_after_unmount`, `conflict_reload_requires_confirmation`, `double_submit_creates_once`: no perder cambios, bloquear edición durante recarga y no ejecutar una segunda mutación pendiente.
-- [ ] Ejecutar `npm test -- apps/bi-analytics/src/pages/semantic-catalog apps/bi-analytics/src/app/routes.test.tsx`; comprobar RED. Implementar con tokens/componentes existentes, labels accesibles, foco de diálogo, mensajes y estados de las pantallas aceptadas en T1.
-- [ ] Repetir comando, `npm run typecheck` y `npm run build`; exigir GREEN. Revisión visual escritorio/móvil y teclado; registrar diferencias frente a pantallas, sin afirmar que Stitch prueba accesibilidad o funcionalidad.
-- [ ] Commit `feat: implement configurable semantic catalog workspace`.
+- [x] Escribir tests de dominio personalizado «Logística», altas mínimas, pendientes visibles, recuperar borradores y estados carga/vacío/403/503/duplicado/conflicto/protegido. `does_not_confuse_documented_formula_with_execution`: no mostrar valor calculado ni publicación.
+- [x] Escribir `copy_requires_explicit_kpi_reassignment`, `stale_binding_remains_visible`, `late_save_does_not_navigate_after_unmount`, `conflict_reload_requires_confirmation`, `double_submit_creates_once`: no perder cambios, bloquear edición durante recarga y no ejecutar una segunda mutación pendiente.
+- [x] Ejecutar `npm test -- apps/bi-analytics/src/pages/semantic-catalog apps/bi-analytics/src/app/routes.test.tsx`; comprobar RED. Implementar con tokens/componentes existentes, labels accesibles, foco de diálogo, mensajes y estados de las pantallas aceptadas en T1.
+- [x] Repetir comando, `npm run typecheck` y `npm run build`; exigir GREEN. Revisión visual escritorio/móvil y teclado; registrar diferencias frente a pantallas, sin afirmar que Stitch prueba accesibilidad o funcionalidad.
+- [x] Commit `feat: implement configurable semantic catalog workspace`.
 
 ## T7 — Validación integrada, revisión independiente y entrega
 
@@ -170,10 +177,10 @@ están propuestos en API-003, no aprobados por D06 que es anterior a esos artefa
 
 **Interfaces:** script propuesto `test:semantic-catalog` ejecuta `playwright test --config playwright.semantic-catalog.config.ts`. Config toma patrón de datasets y asigna puertos disponibles propios, SQLite descartable y `reuseExistingServer=false` por defecto; traces desactivados. No usar bases/servidores de validación del usuario.
 
-- [ ] Escribir primero pruebas navegador contra API real: dominio nuevo→dimensión/medida→dos KPI→bloqueo→copia→cambio sólo del primero→recarga; dos tenants sin acceso cruzado; sin datos calculados. Añadir teclado/axe en catálogo, formulario y diálogo, escritorio y móvil. Comprobar RED funcional antes de completar infraestructura faltante de la suite.
-- [ ] Ejecutar desde backend `.venv\Scripts\python.exe -m pytest`; desde codebase `npm test`, `npm run typecheck`, `npm run build`, `npm run test:semantic-catalog`, `npm run test:datasets`, `npm run test:sources`, `npm run test:api-integration`, `npm run test:smoke`. PostgreSQL real sólo opt-in documentado. Registrar códigos de salida/conteos actuales, no copiar los de US-002.
-- [ ] Realizar revisión independiente de todo el incremento: seguridad, carreras, migración/restore, idempotencia, compatibilidad y cobertura spec→pruebas; corregir hallazgos relevantes y repetir suites afectadas. No declarar revisión ejecutada si no hay evidencia.
-- [ ] Entregar guía manual reproducible para «Logística» y contraste de los dos KPI, datos creados, permisos locales, limitaciones y pendientes de historia madre/producción. Guardar evidencia de cada criterio y señalar pruebas bloqueadas o no ejecutadas.
+- [x] Escribir primero pruebas navegador contra API real: dominio nuevo→dimensión/medida→dos KPI→bloqueo→copia→cambio sólo del primero→recarga; dos tenants sin acceso cruzado; sin datos calculados. Añadir teclado/axe en catálogo, formulario y diálogo, escritorio y móvil. Comprobar RED funcional antes de completar infraestructura faltante de la suite.
+- [x] Ejecutar desde backend `.venv\Scripts\python.exe -m pytest`; desde codebase `npm test`, `npm run typecheck`, `npm run build`, `npm run test:semantic-catalog`, `npm run test:datasets`, `npm run test:sources`, `npm run test:api-integration`, `npm run test:smoke`. PostgreSQL real sólo opt-in documentado. Registrar códigos de salida/conteos actuales, no copiar los de US-002.
+- [x] Realizar revisión independiente de todo el incremento: seguridad, carreras, migración/restore, idempotencia, compatibilidad y cobertura spec→pruebas; corregir hallazgos relevantes y repetir suites afectadas. No declarar revisión ejecutada si no hay evidencia.
+- [x] Entregar guía manual reproducible para «Logística» y contraste de los dos KPI, datos creados, permisos locales, limitaciones y pendientes de historia madre/producción. Guardar evidencia de cada criterio y señalar pruebas bloqueadas o no ejecutadas.
 - [ ] Commit acotado `test: verify semantic catalog end-to-end journey`; cierre sólo tras GREEN y aceptación manual solicitada. No publicar ni fusionar automáticamente.
 
 ## Cobertura y definición de terminado

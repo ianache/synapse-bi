@@ -8,6 +8,11 @@ API-003/DM-003 y pantallas nuevas siguen sujetos a revisión propia. No hay prod
 
 ## 1. Intención y criterio de éxito
 
+Actualización 2026-10-17: incremento local implementado por D07 en rama aislada;
+la mención inicial «no hay producto implementado» describe el momento de D06.
+Pruebas finales y revisión resuelta en docs/ux/us-003/README.md. No se declara
+completa la historia madre ni se añaden publicación/cálculo o gobierno productivo.
+
 Permitir crear dominios y definiciones semánticas propias sin cambiar código,
 reutilizando dimensiones/medidas y conservando procedencia técnica. El usuario
 puede guardar una idea incompleta, recuperarla y completarla; la interfaz distingue

@@ -15,7 +15,11 @@ sources:
 
 Actualización 2026-10-17: recorrido implementado localmente en el worktree
 `.worktrees/us-003-semantic-catalog`, rama `feat/us-003-semantic-catalog`, por D07.
-Pruebas nuevas de navegador: 2 passed (40.1 s), teclado/axe y anchos 1440/390 en
+Pruebas finales: backend 148 passed con PostgreSQL real; frontend 70 passed (un
+worker y presupuesto CLI 15 s por prueba), tipos/build en verde. Revisión independiente
+con dos Important corregidos y un Minor diferido: sinónimos no visibles en ficha
+protegida, conservados por API. Pruebas nuevas de navegador: 2 passed tras fixes,
+teclado/axe y anchos 1440/390 en
 formulario de dominio, componente, KPI y copia. Los apartados de propuesta
 conservan procedencia del diseño; no equivalen a certificación productiva.
 
@@ -152,7 +156,8 @@ o usar una copia autorizada y respaldada de un control plane existente, nunca Go
 Comandos de evidencia en `codebase`: `npm test`, `npm run typecheck`, `npm run build`,
 `npm run test:semantic-catalog`; backend `.venv\Scripts\python.exe -m pytest`.
 Los datos E2E propios permanecen en `backend/data/semantic-e2e-*.db`; no se borraron
-bases ni respaldos. No afirmar revisión independiente concluida hasta su reporte.
+bases ni respaldos. Revisión y resolución en
+[final-review.md](../../../.superpowers/sdd/2026-10-16-us-003-semantic-catalog-plan/final-review.md).
 
 ### Registro histórico de T1
 

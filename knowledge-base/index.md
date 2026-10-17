@@ -11,6 +11,11 @@ generated:
 ## Requirement Context Packs
 
 - [RCP-001 - Contexto de requisitos de BI Analytics Platform v1.1](/knowledge-base/requirements/context-packs/RCP-001-bi-analytics-platform-v1-1.md)
+- [RCP-002 — Definición semántica configurable US-003](/knowledge-base/requirements/context-packs/RCP-002-us-003-definicion-semantica.md)
+  - [Decisiones D01–D07](/docs/ux/us-003/decisions.md)
+  - [Diseño US-003](/docs/superpowers/specs/2026-10-16-us-003-semantic-catalog-design.md)
+  - [Plan y alcance del incremento](/docs/superpowers/plans/2026-10-16-us-003-semantic-catalog-plan.md)
+  - [UX, evidencia y prueba manual local](/docs/ux/us-003/README.md)
 
 ## User Stories
 
@@ -34,10 +39,12 @@ generated:
 ## Business Glossary
 
 - [GLS-001 - Glosario de negocio de BI Analytics Platform v1.1](/knowledge-base/business/glossary/GLS-001-glosario-de-negocio.md)
+  - [Dominio — TRM-0024, definición en borrador](/knowledge-base/business/glossary/terms/TRM-0024-dominio.md)
 
 ## Modelo de información conceptual
 
 - [IMD-001 — Registro de datasets](/knowledge-base/business/information-model/IMD-001-registro-datasets.md)
+- [IMD-002 — Catálogo semántico configurable](/knowledge-base/business/information-model/IMD-002-catalogo-semantico.md)
 
 ## ASR Candidate Catalog
 
@@ -52,6 +59,7 @@ generated:
 
 - [API-001 — Backend Python: consultas semánticas y dashboards](/knowledge-base/design/api-contracts/API-001-python-semantic-dashboard-api.md)
 - [API-002 — Propuesta de API de datasets](/knowledge-base/design/api-contracts/API-002-dataset-registry.md)
+- [API-003 — Catálogo semántico, implementación local autorizada D07](/knowledge-base/design/api-contracts/API-003-semantic-catalog.md)
 
 ## Seguridad y conectividad de fuentes
 
@@ -61,6 +69,7 @@ generated:
 
 - [DM-001 — Gold retail omnicanal de laboratorio](/knowledge-base/design/data-models/DM-001-retail-gold-study.md)
 - [DM-002 — Propuesta de persistencia de datasets](/knowledge-base/design/data-models/DM-002-dataset-registry.md)
+- [DM-003 — Catálogo semántico SQLite v4](/knowledge-base/design/data-models/DM-003-semantic-catalog.md)
 
 ## Fuentes principales de producto
 

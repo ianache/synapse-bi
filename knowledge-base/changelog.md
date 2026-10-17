@@ -8,6 +8,14 @@ generated:
 
 # Changelog
 
+## 2026-10-17
+
+- Se sincronizó el índice GLS-001 con Dominio (TRM-0024) ya incorporado por D05, sin modificar definiciones existentes ni aprobar términos: 24 términos/0 errores; IMD-002 cuatro conceptos/ocho relaciones/0 errores/0 avisos. GQ-05 y los cuatro gaps previos permanecen abiertos.
+
+- US-003: ejecución local autorizada por D07 y worktree aislado elegido por el usuario. Implementados catálogo de dominios/componentes/KPI declarativos, migración SQLite v4, referencias seguras, protección permanente/copia explícita, snapshots de dataset, permisos, idempotencia/versiones, formularios y navegación separada de fixtures publicados. Sin cálculo, publicación ni escritura en Gold.
+- Evidencia previa a revisión final: backend 146 passed/1 skipped, frontend 66 passed, tipos/build, E2E US-003 2, fuentes 2, datasets 3, API analista 3 y smoke 7. Revisión independiente y repetición backend con PG opt-in en curso; no afirmar cierre hasta completar sus resultados. Guía manual y decisiones en docs/ux/us-003; trabajo permanece en rama feat/us-003-semantic-catalog, no fusionado.
+- Cierre técnico posterior: revisión independiente READ-ONLY encontró 0 Critical, 2 Important y 1 Minor. Se corrigieron vínculo oculto al editar y refresh tras PUT confirmado mediante RED→GREEN. Resultado final backend 148 passed con PG real, frontend 70 passed con ejecución serial/15 s, tipos/build y 17 pruebas de navegador. Minor diferido: sinónimos en detalle protegido. Aceptación manual e integración pendientes; nada fusionado/publicado.
+
 ## 2026-10-15
 
 - Se creó `RCP-001`, Requirement Context Pack para BI Analytics Platform v1.1, a partir de `intents/PRD.md`.

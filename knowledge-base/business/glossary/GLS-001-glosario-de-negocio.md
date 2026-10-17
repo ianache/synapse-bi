@@ -6,7 +6,7 @@ tags: [glossary, business, BI-Analytics]
 status: draft
 generated:
   by: "af-business-glossary-curator/1.1"
-  at: "2026-10-16T01:00:46-05:00"
+  at: "2026-10-17T00:00:00-05:00"
 sources:
   - id: PRD-BI-ANALYTICS-V1.1
     resource: /intents/PRD.md
@@ -14,6 +14,8 @@ sources:
     resource: /knowledge-base/requirements/context-packs/RCP-001-bi-analytics-platform-v1-1.md
   - id: BRC-001
     resource: /knowledge-base/business/rules/BRC-001-reglas-negocio-bi-analytics-v1-1.md
+  - id: SEM-US003-D01-D07
+    resource: /docs/ux/us-003/decisions.md
   - id: ISO-KPI
     resource: https://www.iso.org/obp/ui?_escaped_fragment_=iso:std:iso:14031:ed-3:v1:es
   - id: ISO-AI
@@ -25,6 +27,11 @@ sources:
 > **Procedencia:** PRD v1.1, RCP-001 y BRC-001 (documentos internos en `draft`, nivel N2); páginas oficiales ISO consultadas el 2026-10-16 (N1) para KPI e IA. **Alcance:** BI Analytics Platform v1.1. **Consumidor:** negocio, análisis funcional, Semantic Governance, Data Engineering y equipos de producto. Ninguna definición está verificada hasta que la valide su responsable.
 
 ## Cómo leer este glosario
+
+Actualización US-003: se sincroniza TRM-0024 Dominio, incorporado por D05 a partir
+del registro interno de decisiones (draft, N2). Incorporación aceptada no implica
+verificación de la definición ni asignación de responsable (GQ-05 pendiente).
+Consumidores: modelo conceptual IMD-002 y equipo del catálogo semántico local.
 
 - Cada término es un artefacto OKF v0.2 propio en `terms/TRM-NNNN-<slug>.md`, con su estado y su verificación. Este catálogo es solo el índice: se genera con `glossary.py build` y no se edita a mano entre los marcadores.
 - El índice está en orden alfabético del español: sin distinguir mayúsculas ni tildes, con la Ñ después de la N y las cifras antes de la A.
@@ -56,6 +63,7 @@ sources:
 | [Dataset](terms/TRM-0005-dataset.md) | concepto | Conjunto de datos registrado para consumo directo o preparado, asociado a owner, clasificación, frescura y lineage dentro de la plataforma. | draft |
 | [Dataset preparado](terms/TRM-0006-dataset-preparado.md) | concepto | Dataset producido o transformado mediante ingeniería de datos complementaria para normalizar, validar, deduplicar, historizar, reconciliar o servir información cuando la fuente directa no basta. | draft |
 | [Dimensión](terms/TRM-0007-dimension.md) | concepto | Entidad descriptiva conformada que permite analizar hechos por categorías, jerarquías u otros atributos relevantes del dominio. | draft |
+| [Dominio](terms/TRM-0024-dominio.md) | concepto | Ámbito de negocio creado por el usuario en el catálogo semántico para agrupar dimensiones, medidas y definiciones de KPI reutilizables. | draft |
 
 ### E
 
@@ -144,6 +152,8 @@ sources:
 | GQ-02 | [Frescura de datos](terms/TRM-0009-frescura-de-datos.md) | ¿Cómo se mide freshness y qué objetivos o tolerancias aplican por dataset/KPI? | Owner de dominio / Data Engineering | Alta | Abierta |
 | GQ-03 | [Entidad de negocio](terms/TRM-0008-entidad-de-negocio.md) | ¿Qué criterios delimitan una entidad de negocio en el catálogo semántico? | Semantic Governance / owner de dominio | Media | Abierta |
 | GQ-04 | [Tenant](terms/TRM-0023-tenant.md) | ¿Qué entidad organizacional representa un tenant y cómo se relaciona con producto/dominio? | Producto / Tenant & Access Governance | Alta | Abierta |
+| IM2-Q1 | [Dominio](terms/TRM-0024-dominio.md) | ¿Incorporar Dominio? | Usuario de esta conversación | Media | Cerrada — SEM-US003-D05 (N2, sin verificación nominal); incorporación realizada |
+| GQ-05 | [Dominio](terms/TRM-0024-dominio.md) | Revisar definición y asignar responsable | Producto / Semantic Governance, por confirmar | Media | Abierta |
 
 ## Preparación y entrega
 
@@ -156,6 +166,6 @@ sources:
 - [x] Cada definición tiene al menos una fuente N1 o N2 con localizador
 - [x] Sinónimos y formas completas respaldados por una fuente
 - [x] Sin conocimiento propio del modelo como fuente
-- [x] `glossary.py check` sin errores (23 términos, 0 errores)
+- [x] `glossary.py check` sin errores (24 términos, 0 errores)
 - [x] `knowledge-base/index.md` y `changelog.md` actualizados
 - [ ] Validación humana registrada

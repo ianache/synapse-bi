@@ -133,8 +133,9 @@ las herramientas del navegador.
 La integración de producción debe reemplazar ese adaptador por una API que
 resuelva identidad/tenant, permisos de lectura y edición, versiones del modelo
 semántico y consultas. Los KPI añadidos se muestran sin valores inventados hasta
-conectar el motor de consulta. Catálogo, Glosario y Lineage globales figuran como
-capacidades próximas; el detalle del KPI sí incluye un lineage ilustrativo.
+conectar el motor de consulta. US-003 incorpora el catálogo semántico declarativo
+local cuando se habilita API; Glosario y Lineage globales siguen como capacidades
+próximas. El detalle del KPI de demostración incluye un lineage ilustrativo.
 
 ### Verificación
 

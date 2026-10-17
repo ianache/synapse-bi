@@ -48,6 +48,12 @@ sources:
 
 # RCP-002 — Definición semántica, primer incremento
 
+Actualización 2026-10-17 / D07: incremento local implementado y verificado en
+worktree aislado, con revisión independiente y dos Important corregidos. Las
+afirmaciones de descubrimiento/no implementación siguientes son históricas. Guía
+y estado de entrega en docs/ux/us-003/README.md; aceptación manual y gobierno de
+producción siguen pendientes, sin owner/aprobador nominal inventado.
+
 Actualización D06 (2026-10-16): usuario conforme con diseño/plan y método nativo
 con revisión independiente final. Los pendientes de revisión de esos dos artefactos
 en el registro histórico siguiente quedan superados localmente. API-003, DM-003
