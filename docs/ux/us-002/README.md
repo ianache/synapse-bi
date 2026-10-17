@@ -86,6 +86,32 @@ no se añade una verificación humana nominal inexistente.
 
 ## Revisión realizada
 
+### Corrección de conformidad visual del catálogo
+
+Para los dos pasos de `/datasets/nuevo`, el usuario confirmó también reproducir
+las pantallas de origen y metadatos, conservando dos pasos, clasificación libre
+declarada e identificador del sistema. Ver [Conformidad visual del registro](registration-visual-conformance.md).
+
+El 2026-10-17 el usuario autorizó aplicar el diseño Stitch
+`725195c5c57a461d8db992a49f6afc5d`, manteniendo registro y completitud separados.
+Referencia, implementación, límites y evidencia en
+[Conformidad visual de datasets](visual-conformance.md). La conformidad funcional
+de US-002 no se reutiliza como aceptación visual de esta corrección.
+
+### Conformidad con la validación local
+
+**UX-US002-D04 — Confirmada por el usuario el 2026-10-16.** Evidencia textual:
+«Conforme con validacion de US-002. Continuar con US-003».
+
+Se registra conformidad con la validación del incremento local y autorización
+para continuar el trabajo de US-003. No identifica un aprobador organizacional,
+no certifica datasets ni aprueba despliegue productivo, políticas empresariales
+o reglas semánticas aún pendientes. El aviso preventivo de selección superior
+a 500 columnas sigue siendo una mejora menor diferida; la API rechaza el exceso.
+
+La siguiente etapa se delimita en
+[RCP-002 — Contexto inicial de US-003](../../../knowledge-base/requirements/context-packs/RCP-002-us-003-definicion-semantica.md).
+
 ### Ejecución local autorizada
 
 **UX-US002-D03 — Confirmada por el usuario el 2026-10-16.** Respuesta «si» a

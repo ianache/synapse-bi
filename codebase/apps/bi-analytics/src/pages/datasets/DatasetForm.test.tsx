@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import { DatasetsRepository } from '../../adapters/datasetsRepository'
@@ -29,6 +29,25 @@ async function step2() {
   await userEvent.click(screen.getByRole('button', { name: 'Continuar a metadatos' }))
   await userEvent.type(screen.getByLabelText('Nombre del dataset'), 'Ventas nuevas')
 }
+
+it('shows observed objects and real column constraints beside a technical summary before moving to metadata', async () => {
+  setup()
+  const objects = await screen.findByRole('table', {name: 'Objetos observados'})
+  expect(within(objects).getByText('fact_sales')).toBeInTheDocument()
+  const columns = screen.getByRole('table', {name: 'Columnas del objeto seleccionado'})
+  expect(within(columns).getAllByText('PK').length).toBeGreaterThan(0)
+  await userEvent.click(screen.getByRole('checkbox', {name: 'Seleccionar todas las columnas'}))
+  expect(screen.getByLabelText('Seleccionar columna tenant_id')).toBeChecked()
+  expect(screen.getByLabelText('Seleccionar columna sales_line_key')).toBeChecked()
+  expect(screen.getByRole('complementary', {name: 'Resumen del registro'})).toHaveTextContent('gold.fact_sales')
+  await userEvent.click(screen.getByRole('radio', {name: 'Seleccionar objeto gold.sales_view'}))
+  expect(screen.getByRole('button', {name: 'Continuar a metadatos'})).toBeDisabled()
+  await userEvent.click(screen.getByLabelText('Seleccionar columna tenant_id'))
+  await userEvent.click(screen.getByRole('button', {name: 'Continuar a metadatos'}))
+  expect(screen.getByRole('heading', {name: 'Frescura y ciclo de actualización'})).toBeInTheDocument()
+  expect(screen.getByRole('textbox', {name: 'Clasificación declarada'})).toBeInTheDocument()
+  expect(screen.getByRole('textbox', {name: 'Identificador técnico'})).toHaveValue('Se asignará al guardar')
+})
 it('saves incomplete draft with null placeholders and no invented approval', async () => {
   const { repository } = setup()
   const create = vi.spyOn(repository, 'create').mockResolvedValue(dataset)
@@ -46,7 +65,7 @@ it('requires governance for registration but not for draft', async () => {
 })
 it('requires explicit prepared inputs/process and optional Medallion declarations', async () => {
   setup()
-  await userEvent.selectOptions(await screen.findByLabelText('Tipo de dataset'), 'prepared')
+  await userEvent.click(await screen.findByRole('radio', {name: 'Preparado'}))
   await step2()
   for (const label of ['Responsable declarado', 'Clasificación declarada', 'Expectativa de frescura']) await userEvent.type(screen.getByLabelText(label), 'Declarado')
   expect(screen.getByRole('button', { name: 'Registrar dataset' })).toBeDisabled()
@@ -89,8 +108,11 @@ it('locks edit origin/type and preserves local edits on 412', async () => {
   const { repository } = setup(true)
   const update = vi.spyOn(repository, 'update').mockRejectedValue(new ApiRequestError(412, 'version_conflict', 'El dataset cambió'))
   await screen.findByLabelText('Seleccionar columna tenant_id')
-  expect(screen.getByLabelText('Tipo de dataset')).toBeDisabled()
+  expect(screen.getByRole('radio', {name: 'Directo'})).toBeDisabled()
+  expect(screen.getByRole('radio', {name: 'Preparado'})).toBeDisabled()
   expect(screen.getByLabelText('Origen · Fuente')).toBeDisabled()
+  expect(screen.queryByText(/Borrador técnico pendiente/)).not.toBeInTheDocument()
+  expect(screen.getByText(/Cambios pendientes de guardar/)).toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: 'Continuar a metadatos' }))
   await userEvent.type(screen.getByLabelText('Nombre del dataset'), ' local')
   await userEvent.click(screen.getByRole('button', { name: 'Guardar borrador' }))

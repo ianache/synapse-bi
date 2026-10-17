@@ -1,13 +1,15 @@
 ---
 type: Conceptual Information Model
 title: IMD-002 — Modelo conceptual del catálogo semántico configurable
-description: Conceptos y relaciones para el primer corte de US-003, antes de diseñar persistencia.
+description: Catálogo US-003 y agrupación modelo/dominio aprobada para el primer incremento US-004.
 tags: [information-model, conceptual, semantica]
 status: draft
 generated:
   by: af-conceptual-model-designer/1.0
-  at: 2026-10-16T18:51:42-05:00
+  at: 2026-10-17T14:02:49-05:00
 sources:
+  - id: BRC-002
+    resource: /knowledge-base/business/rules/BRC-002-gobierno-publicacion-modelo-semantico.md
   - id: US-003
     resource: /knowledge-base/requirements/user-stories/US-003-definir-elementos-semanticos.md
   - id: RCP-002
@@ -34,12 +36,18 @@ declarar procedencia en un dataset registrado. Los KPI referencian esos componen
 y documentan significado; si un componente se utiliza, se protege y su cambio se
 realiza mediante copia y reasociación explícita (SEM-US003-D03/D04).
 
+Extensión US-004: cada modelo semántico pertenece a un único dominio, que puede
+tener varios modelos. Selecciona definiciones KPI del dominio y sus dependencias;
+no se crea automáticamente a partir del dominio (GOV004-12). No se diseña aquí
+persistencia, composición de versiones ni captura de dependencias.
+
 ## 2. Diagrama — Agrupación y procedencia declarada
 
 ```mermaid
 erDiagram
     DOMINIO ||--o{ DIMENSION : "agrupa"
     DOMINIO ||--o{ MEDIDA : "agrupa"
+    DOMINIO ||--o{ MODELO_SEMANTICO : "agrupa modelos"
     DIMENSION }o--o| DATASET : "declara procedencia"
     MEDIDA }o--o| DATASET : "declara procedencia"
     DIMENSION o|--o{ DIMENSION : "origina copias"
@@ -74,6 +82,7 @@ definen en este corte y GQ-03 no se cierra.
 | Medida | MEDIDA | Véase término del glosario, aún clasificado como inferencia | Componentes | [TRM-0018](../glossary/terms/TRM-0018-medida.md) | SEM-US003-D03/D04 | Primer incremento local |
 | Dataset | DATASET | Concepto del registro US-002; véase glosario | Procedencia externa al catálogo semántico | [TRM-0005](../glossary/terms/TRM-0005-dataset.md) | SEM-US003-D01/D04; IMD-001 | Existente |
 | KPI | — (representación derivada) | Véase término del glosario; se documenta, no se ejecuta | Definiciones | [TRM-0014](../glossary/terms/TRM-0014-indicador-clave-de-desempeno-kpi.md) | US-003 AC-2; SEM-US003-D02/D03 | Primer incremento local |
+| Modelo semántico | MODELO_SEMANTICO | Véase término del glosario; contrato gobernado | Agrupación US-004 | [TRM-0020](../glossary/terms/TRM-0020-modelo-semantico.md) | GOV004-12 / EVD-2026-0016 | Primer incremento US-004 |
 
 ## 5. Relaciones
 
@@ -87,6 +96,7 @@ definen en este corte y GQ-03 no se cierra.
 | R-06 | Una medida puede dar lugar a copias independientes | 0..1 : 0..N | FACT — relación y cardinalidad aceptadas para incremento local | SEM-US003-D04/D05 | IM2-Q2 cerrada |
 | R-07 | La definición de un KPI referencia dimensiones reutilizables | 0..N : 0..N | FACT — relación y cardinalidad aceptadas para incremento local | SEM-US003-D02/D03/D05 | Cardinalidad resuelta; detalle SEM-Q05 abierto |
 | R-08 | La definición de un KPI referencia medidas reutilizables | 0..N : 0..N | FACT — relación y cardinalidad aceptadas para incremento local | SEM-US003-D02/D03/D05 | Cardinalidad resuelta; detalle SEM-Q05 abierto |
+| R-09 | Un dominio agrupa modelos semánticos; cada modelo pertenece a un único dominio | 1 : 0..N | FACT — opción A aceptada para primer incremento US-004 | BRC-002 GOV004-12 / EVD-2026-0016 | Resuelta por confirmación A; no implica creación automática |
 
 R-07/R-08 describen la representación derivada del KPI; por eso no agregan nodos
 al diagrama conceptual. Referenciar no implica ejecutar ni publicar.
@@ -102,6 +112,7 @@ se conserva su procedencia y no se generalizan fuera de este alcance.
 | SEM-US003-D04 (decisión, sin BR-*) | Dominio, Dimensión, Medida | Nombre obligatorio; dimensión/medida requieren dominio; mapeo puede faltar |
 | SEM-US003-D04 (decisión, sin BR-*) | Dimensión y Medida utilizadas | No se modifican directamente; copia y actualización explícita de cada KPI |
 | SEM-US003-D04 (decisión, sin BR-*) | Referencias declaradas | Deben existir y estar autorizadas, incluso en borrador |
+| GOV004-12 | Dominio y modelo semántico | Modelo de un único dominio; varios modelos por dominio; selección de KPI y dependencias sin creación automática |
 
 ## 7. Preguntas abiertas del modelo
 
@@ -118,6 +129,7 @@ se conserva su procedencia y no se generalizan fuera de este alcance.
 | --- | --- | --- | --- |
 | 2026-10-16 | Modelo inicial del catálogo, sin sustituir IMD-001 de registro de datasets | R-01 a R-08; cuatro nodos y representación KPI | SEM-US003-D01–D04 |
 | 2026-10-16 | Relaciones/cardinalidades aceptadas; inferencias pasan a FACT local; Dominio incorporado al glosario | R-01 a R-08; DOMINIO / TRM-0024; IM2-Q1/2 cerradas | SEM-US003-D05 |
+| 2026-10-17 | Modelo semántico incorporado; agrupación por dominio aceptada | R-09; MODELO_SEMANTICO / TRM-0020 | GOV004-12 / EVD-2026-0016 |
 
 ## 9. Preparación y validación
 
@@ -128,14 +140,18 @@ se conserva su procedencia y no se generalizan fuera de este alcance.
 - Validación humana por bloque:
   - [x] Agrupación, procedencia, copias y referencias KPI, con cardinalidades R-01 a R-08 — usuario de esta conversación — SEM-US003-D05.
   - [x] Incorporación de Dominio al glosario — IM2-Q1 / SEM-US003-D05.
+  - [x] Agrupación dominio/modelo para primer incremento US-004 — R-09 / GOV004-12.
   - [ ] Definición/responsable de Dominio y detalle funcional de mapeos — GQ-05 / SEM-Q05.
 - Inferencias de relaciones pendientes de aceptar/rechazar: ninguna en R-01 a R-08.
 - Las decisiones humanas usadas están registradas en docs/ux/us-003/decisions.md;
   no hay identidad nominal de verificador inventada.
-- Validación estructural ejecutada con check_model.py: cuatro conceptos en
+- Validación estructural anterior US-003 con check_model.py: cuatro conceptos en
   diagramas, ocho relaciones, cero errores y cero avisos. Esto no constituye
   ratificación humana del glosario o diseño; la ratificación de relaciones es D05.
 - Render Mermaid pendiente: se intentó con npx --no-install y Chrome. El sandbox
   rechazó el acceso de npm; el reintento autorizado fuera del sandbox confirmó
   que Mermaid CLI 11 no está disponible en caché. No se instalaron dependencias
   nuevas ni se afirma validación visual del diagrama.
+- Validación estructural tras R-09: check_model.py → cinco conceptos en diagramas,
+  nueve relaciones, cero errores y cero avisos. Mermaid CLI sigue sin instalarse
+  localmente; no se afirma render visual del diagrama actualizado.

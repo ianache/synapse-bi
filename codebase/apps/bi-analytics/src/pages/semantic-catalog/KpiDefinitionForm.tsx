@@ -9,8 +9,8 @@ function input(item?: KpiDefinition): SaveKpiDefinition {
   return {name: item?.name ?? '', domainId: item?.domainId ?? '', dimensionIds: item?.dimensionIds ?? [], measureIds: item?.measureIds ?? [],
     ...Object.fromEntries(fields.map(field => [field, item?.[field] ?? null]))}
 }
-export function KpiDefinitionForm({repository, domains, components, initial, onSaved}: {repository: SemanticCatalogRepository; domains: Domain[]; components: Component[]; initial?: KpiDefinition; onSaved: (item: KpiDefinition) => void}) {
-  const [body, setBody] = useState(input(initial))
+export function KpiDefinitionForm({repository, domains, components, initial, onSaved, defaultDomainId = ''}: {repository: SemanticCatalogRepository; domains: Domain[]; components: Component[]; initial?: KpiDefinition; onSaved: (item: KpiDefinition) => void; defaultDomainId?: string}) {
+  const [body, setBody] = useState(() => initial ? input(initial) : {...input(), domainId: defaultDomainId})
   return <DraftForm body={body} initial={initial} title={initial ? 'Editar definición KPI' : 'Crear definición KPI'} onSaved={onSaved}
     reload={initial ? () => repository.get('kpi-definitions', initial.id) : undefined} onReload={item => setBody(input(item))}
     save={async (draft, key, version) => { if (initial) return repository.update('kpi-definitions', {...initial, version: version!}, draft); const saved = await repository.createKpi(draft, key); return repository.get('kpi-definitions', saved.id) }}>

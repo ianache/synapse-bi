@@ -11,6 +11,8 @@ import '../kpi-workspace.css'
 import '../sources.css'
 import '../sources-accessibility.css'
 import './datasets.css'
+import './stitch-datasets.css'
+import './stitch-registration.css'
 
 const defaultRepository = new DatasetsRepository()
 const sourceRepository = new SourcesRepository()

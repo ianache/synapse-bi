@@ -192,6 +192,17 @@ adicional de implementación sigue sujeto a revisión del diseño escrito:
 
 ## Diseño escrito para revisión
 
+### SEM-US003-D08 — Fidelidad visual obligatoria (2026-10-17)
+
+El usuario confirmó corregir `/catalogo-semantico` conforme a la pantalla Stitch
+`52fd5fb8a6254ff4bf1165579309bc9e` y pidió: «Incluir como mandato el apego fiel
+al diseño de Google Stitch al realizar la implementacion». El mandato se
+registra en `AGENTS.md` en la raíz. La aprobación funcional previa no constituye
+aceptación visual. Se corrigen composición tabla/ficha lateral, barra de dominio,
+pestañas separadas, encabezados y estilos; se conservan contratos, permisos y datos.
+Los valores de laboratorio del mockup no se insertan como datos reales. Las
+desviaciones pendientes deben declararse, no aprobarse por el agente.
+
 [US-003 — Catálogo semántico configurable](../../superpowers/specs/2026-10-16-us-003-semantic-catalog-design.md)
 consolida el diseño. Su conformidad local posterior y la del plan se registran en
 D06; no aprobar por ese hecho contratos o pantallas creados después.

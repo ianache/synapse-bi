@@ -7,8 +7,8 @@ import { BindingPicker } from './BindingPicker'
 const input = (item?: Component): SaveComponent => ({name: item?.name ?? '', domainId: item?.domainId ?? '', kind: item?.kind ?? 'dimension', definition: item?.definition ?? null,
   grain: item?.grain ?? null, unit: item?.unit ?? null, aggregation: item?.aggregation ?? null, synonyms: item?.synonyms ?? [],
   ...(item?.bindingStatus === 'unavailable' ? {} : {binding: item?.binding ?? null})})
-export function ComponentForm({repository, domains, initial, onSaved}: {repository: SemanticCatalogRepository; domains: Domain[]; initial?: Component; onSaved: (item: Component) => void}) {
-  const [body, setBody] = useState(input(initial))
+export function ComponentForm({repository, domains, initial, onSaved, defaultKind = 'dimension', defaultDomainId = ''}: {repository: SemanticCatalogRepository; domains: Domain[]; initial?: Component; onSaved: (item: Component) => void; defaultKind?: 'dimension' | 'measure'; defaultDomainId?: string}) {
+  const [body, setBody] = useState(() => initial ? input(initial) : {...input(), kind: defaultKind, domainId: defaultDomainId})
   const [synonymText, setSynonymText] = useState(initial?.synonyms?.join('; ') ?? '')
   return <DraftForm body={body} initial={initial} title={initial ? 'Editar componente' : 'Crear componente'} protected={initial?.protected} onSaved={onSaved}
     reload={initial ? () => repository.get('components', initial.id) : undefined} onReload={item => {setBody(input(item)); setSynonymText(item.synonyms?.join('; ') ?? '')}}

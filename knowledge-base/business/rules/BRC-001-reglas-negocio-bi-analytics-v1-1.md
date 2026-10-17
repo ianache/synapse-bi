@@ -21,6 +21,15 @@ related:
 
 # Catálogo de reglas de negocio - BI Analytics Platform v1.1
 
+> Actualización de alcance 2026-10-17: el usuario aprobó las siete respuestas de
+> US-004-Q1. [BRC-002](/knowledge-base/business/rules/BRC-002-gobierno-publicacion-modelo-semantico.md)
+> registra EVD-2026-0014 y concreta BR-008/015/018 y aspectos de BR-006/016/017
+> para US-004. Las menciones históricas a «pendiente» sobre ese conjunto deben
+> leerse con esta actualización; no se aprueban las demás propuestas del catálogo.
+> BRC-002 prevalece para ciclo, consulta histórica, roles, gates y compatibilidad
+> de US-004. Actualización posterior: Q2–Q5 aprobadas en GOV004-08–11,
+> EVD-2026-0015; permanecen nombramientos reales y retención productiva pendientes.
+
 ## Objetivo y alcance
 
 Extraer reglas funcionales candidatas sobre definiciones semánticas, modelos/KPI, datasets, consumo, autorización y aislamiento multitenant para BI Analytics Platform v1.1. El catálogo sirve como insumo para validación funcional y refinamiento de requisitos.
@@ -53,7 +62,10 @@ Fecha de observación: 2026-10-16. Las ubicaciones apuntan a secciones estables 
 
 ## Reglas de negocio candidatas
 
-Todas las reglas mantienen estado **Propuesta / pendiente de validación**. “Regla derivada” identifica una inferencia operativa necesaria para expresar la intención documental; no agrega una política aprobada.
+La tabla conserva el registro histórico de propuestas. La excepción aprobada para
+US-004 se delimita en BRC-002; no se altera retroactivamente la evidencia original.
+“Regla derivada” identifica una inferencia operativa necesaria para expresar la
+intención documental; no agrega por sí sola una política aprobada.
 
 | ID | Regla candidata | Tipo | Evidencia | Condición / excepción / caso negativo |
 |---|---|---|---|---|
@@ -130,7 +142,8 @@ Estas inferencias no se etiquetan como decisiones aprobadas ni sustituyen valida
 - **Estado:** CONDITIONAL
 - **Siguiente rol / Skill:** responsable funcional y owners de dominio para validar reglas y resolver vacíos; luego `af-user-story-refiner` para convertir reglas validadas en historias trazables.
 - **Decisión humana requerida:** confirmar si se aceptan estas propuestas; nombrar Domain Owners, Business Owners y Data Stewards; aprobar evidencia de publicación, ventanas de compatibilidad, políticas de calidad/frescura, excepciones y residencia/retención. Definir dominios/workloads reales del primer release.
-- **No se registra aprobación ni verificación humana.**
+- **Aprobación parcial registrada:** US-004-Q1 en BRC-002, EVD-2026-0014.
+  No hay aprobación global de este catálogo ni verificación de implementación.
 
 ## Checklist de calidad
 

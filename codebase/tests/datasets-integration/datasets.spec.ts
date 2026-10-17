@@ -28,15 +28,18 @@ async function observedSource(request: APIRequestContext) {
   return { headers, source, observation, origin: { sourceId: source.id, observationId: observation.id, schema: 'gold', object: 'fact_sales' } }
 }
 async function accessible(page: Page, name: string) {
+  const folder = path.resolve('test-results/dataset-screens')
+  mkdirSync(folder, { recursive: true })
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 })
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     const result = await new AxeBuilder({ page }).analyze()
     expect(result.violations.map(v => ({ id: v.id, elements: v.nodes.map(n => n.target) }))).toEqual([])
   }
+  await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); window.scrollTo(0, 0) })
+  await page.screenshot({ path: path.join(folder, `${name}-mobile.png`), fullPage: true })
   await page.setViewportSize({ width: 1440, height: 1000 })
-  const folder = path.resolve('test-results/dataset-screens')
-  mkdirSync(folder, { recursive: true })
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.screenshot({ path: path.join(folder, `${name}.png`), fullPage: true })
 }
 test.beforeEach(async ({ page }) => {
@@ -50,6 +53,12 @@ test('observed source → incomplete draft → fresh context → register → ed
   await page.getByRole('link', { name: 'Registrar dataset', exact: true }).click()
   await page.getByLabel('Seleccionar columna tenant_id', { exact: true }).check()
   await page.getByLabel('Seleccionar columna sale_amount', { exact: true }).check()
+  await expect(page.getByRole('table', {name: 'Objetos observados', exact: true})).toBeVisible()
+  await expect(page.getByRole('table', {name: 'Columnas del objeto seleccionado', exact: true})).toBeVisible()
+  await page.setViewportSize({width: 1440, height: 1000})
+  const originCard = await page.getByRole('table', {name: 'Objetos observados', exact: true}).boundingBox()
+  const originSummary = await page.getByRole('complementary', {name: 'Resumen del registro'}).boundingBox()
+  expect(originCard!.x + originCard!.width).toBeLessThanOrEqual(originSummary!.x)
   await accessible(page, '01-origin')
   await page.getByRole('button', { name: 'Continuar a metadatos' }).click()
   const name = `Ventas ${crypto.randomUUID()}`
@@ -114,11 +123,13 @@ test('observed source → incomplete draft → fresh context → register → ed
 test('prepared Medallion registration requires explicit process, input and five declarations', async ({ page, request }) => {
   const fixture = await observedSource(request)
   await page.goto(`/datasets/nuevo?${new URLSearchParams(fixture.origin)}`, { waitUntil: 'domcontentloaded' })
-  await page.getByLabel('Tipo de dataset').selectOption('prepared')
+  await page.getByRole('radio', {name: 'Preparado', exact: true}).check()
   await page.getByLabel('Seleccionar columna tenant_id', { exact: true }).check()
   await page.getByRole('button', { name: 'Continuar a metadatos' }).click()
   const name = `Preparado ${crypto.randomUUID()}`
   await page.getByLabel('Nombre del dataset').fill(name)
+  await expect(page.getByRole('textbox', {name: 'Identificador técnico', exact: true})).toHaveValue('Se asignará al guardar')
+  await expect(page.getByRole('heading', {name: 'Frescura y ciclo de actualización', exact: true})).toBeVisible()
   for (const label of ['Responsable declarado', 'Clasificación declarada', 'Expectativa de frescura']) await page.getByLabel(label, { exact: true }).fill('Declarado')
   await expect(page.getByRole('button', { name: 'Registrar dataset', exact: true })).toBeDisabled()
   await page.getByLabel('Referencia del proceso', { exact: true }).fill('Job externo existente')
@@ -147,4 +158,30 @@ test('invalid selection, missing governance, immutable origin and cross-tenant r
   expect((await request.get(`/api/v1/datasets/${dataset.id}`, { headers: foreign })).status()).toBe(404)
   expect((await request.post('/api/v1/datasets', { headers: { ...foreign, 'Idempotency-Key': crypto.randomUUID() }, data: body })).status()).toBe(404)
   expect((await request.put(`/api/v1/datasets/${dataset.id}`, { headers: { ...fixture.headers, 'If-Match': '"1"' }, data: { ...body, kind: 'prepared' } })).status()).toBe(409)
+})
+
+test('Stitch catalog shows real totals, declared governance and separate registration/completeness filters', async ({page, request}) => {
+  const fixture = await observedSource(request), prefix = `Diseño ${crypto.randomUUID().slice(0, 8)}`
+  const body = {name: prefix + ' Directo', description: '', kind: 'direct', saveAs: 'registered', origin: fixture.origin, selectedColumns: ['tenant_id'], governance: {owner: 'Equipo de operaciones', classification: 'Interno', freshnessExpectation: 'Diaria', loadReference: null}, preparation: null, medallion: null}
+  const saved = await request.post('/api/v1/datasets', {headers: {...fixture.headers, 'Idempotency-Key': crypto.randomUUID()}, data: body})
+  expect(saved.status()).toBe(201)
+  const item = await saved.json()
+  const prepared = await request.post('/api/v1/datasets', {headers: {...fixture.headers, 'Idempotency-Key': crypto.randomUUID()}, data: {...body, name: prefix + ' Preparado', kind: 'prepared', saveAs: 'draft', preparation: {processReference: 'Proceso declarado', inputOrigins: [{...fixture.origin, object: 'dim_date'}]}}})
+  expect(prepared.status()).toBe(201)
+  await page.goto('/datasets')
+  await page.getByLabel('Buscar dataset').fill(prefix)
+  await page.getByRole('button', {name: 'Buscar', exact: true}).click()
+  await expect(page.getByRole('link', {name: 'Ver ficha de ' + body.name, exact: true})).toBeVisible()
+  await expect(page.getByRole('table').getByText('Interno (declarado)', {exact: true})).toHaveCount(2)
+  for (const [label, kind] of [['Total de datasets', ''], ['Datasets directos', 'direct'], ['Datasets preparados', 'prepared']]) {
+    const total = await (await request.get('/api/v1/datasets?limit=1' + (kind ? '&kind=' + kind : ''), {headers: fixture.headers})).json()
+    await expect(page.getByLabel(label, {exact: true})).toHaveText(String(total.total))
+  }
+  await accessible(page, '06-stitch-catalog')
+  await page.getByLabel('Registro', {exact: true}).selectOption('registered')
+  await expect(page.getByRole('link', {name: 'Ver ficha de ' + prefix + ' Preparado', exact: true})).toHaveCount(0)
+  await expect(page.getByRole('link', {name: 'Ver ficha de ' + body.name, exact: true})).toBeVisible()
+  await page.getByRole('link', {name: 'Ver ficha de ' + body.name, exact: true}).click()
+  await expect(page).toHaveURL(new RegExp('/datasets/' + item.id + '$'))
+  await expect(page.getByRole('heading', {name: body.name, exact: true})).toBeVisible()
 })

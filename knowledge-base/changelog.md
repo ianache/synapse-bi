@@ -10,6 +10,21 @@ generated:
 
 ## 2026-10-17
 
+- UX-US004-D01: usuario aprobó cinco correcciones acotadas respecto al export Stitch (sin Exportar, captura estable, sin umbral inventado, confirmación desmarcada y Ticket promedio consistente), conservando composición. No implica aceptación visual de implementación ni actualización verificada del export.
+- Preparado plan de primera entrega US-004 con siete tareas TDD e interfaces explícitas, API-004 y DM-004 REQUIRES_REVIEW. Propuestos namespace/scopes nuevos, SQLite v5, preview/digest y concurrencia, representación Borrador N sin SemVer publicado y pruebas aisladas; decisiones técnicas pendientes de revisión del conjunto y selección de ejecución. Sin código, migración aplicada, permisos otorgados, nuevo worktree ni commit/push.
+
+- A petición del usuario, generadas cuatro pantallas desktop US-004 en el proyecto Stitch existente: listado, creación/KPI/dependencias, detalle/historial y comparación/confirmación. Referencias y revisión en docs/ux/us-004/README.md. Creación corregida con ID al guardar y selector de dominio habilitado; correcciones DOM de listado/detalle reportadas por Stitch aún no reflejadas en HTML exportado. Diferencias documentadas, sin declararlas resueltas ni aceptar pantallas en nombre del usuario. Sin implementación, plan aprobado ni variantes móviles individuales.
+
+- US-004: usuario aprobó captura explícita de definiciones/dependencias y actualización con comparación previa, sin sincronización automática; EVD-2026-0017/GOV004-13 y AC-20 registrados. Se escribió especificación de primera entrega en docs/superpowers/specs/2026-10-17-us-004-model-versions-design.md para revisión. Propone dominio fijo, borrador vacío permitido y comprobación explícita del catálogo; esas decisiones de detalle no se dan por aprobadas. Sin plan detallado, pantallas nuevas, código ni commits.
+
+- US-004 opción A confirmada: modelo de un único dominio, varios modelos por dominio, KPI del dominio y sus dependencias, sin creación automática. Registrados EVD-2026-0016/GOV004-12; IMD-002 incorpora MODELO_SEMANTICO (TRM-0020) y R-09 FACT sin modificar R-01–08. US-004 incorpora AC-19. Diseño del primer incremento, captura de dependencias y contratos aún no aprobados; sin implementación.
+
+- US-004-Q2–Q5: usuario aprobó respuestas sobre asignaciones/delegaciones y segregación de tres identidades (autor y dos aprobadores distintos), reversión/retiro excepcional/suspensión/reanudación, auditoría y evidencia por gate. EVD-2026-0015 y GOV004-08–11 incorporados a BRC-002; se conservó la decisión previa Q1.
+- US-004 refinada a 18 criterios Gherkin: READY para diseño/refinamiento de laboratorio, CONDITIONAL para operación real/producción. Q3/Q5 cerradas funcionalmente; Q2 requiere nombramientos reales antes de operar y Q4 política de retención antes de producción. Laboratorio conserva historial sin purga durante la prueba y utiliza identidades/datos sintéticos. Sin código, pantallas nuevas, implementación de US-005 ni autorización de despliegue; división de entregas pendiente.
+
+- US-004-Q1: el usuario aprobó la propuesta de siete apartados de gobierno y publicación. Se creó BRC-002 con EVD-2026-0014, transiciones, segregación, gates, consulta por estado/tenant, contenido inmutable, versión funcional y compatibilidad inicial de 30 días; incluye principios de reversión, suspensión y auditoría. Se actualizó BRC-001 con precedencia acotada, sin aprobar las demás propuestas históricas.
+- Se refinó US-004 con once criterios Gherkin y casos negativos; Q1 cerrada. Historia madre CONDITIONAL: Q2 asignaciones/delegaciones, Q3 operaciones excepcionales, Q4 retención/acceso de auditoría y Q5 evidencias concretas de gates. División en incrementos aún propuesta; sin código, pantallas, permisos reales ni implementación autorizada por esta actualización documental.
+
 - Se sincronizó el índice GLS-001 con Dominio (TRM-0024) ya incorporado por D05, sin modificar definiciones existentes ni aprobar términos: 24 términos/0 errores; IMD-002 cuatro conceptos/ocho relaciones/0 errores/0 avisos. GQ-05 y los cuatro gaps previos permanecen abiertos.
 
 - US-003: ejecución local autorizada por D07 y worktree aislado elegido por el usuario. Implementados catálogo de dominios/componentes/KPI declarativos, migración SQLite v4, referencias seguras, protección permanente/copia explícita, snapshots de dataset, permisos, idempotencia/versiones, formularios y navegación separada de fixtures publicados. Sin cálculo, publicación ni escritura en Gold.
@@ -27,6 +42,24 @@ generated:
 - Los diez ADRs quedaron en estado `Propuesto`, con decisor y justificación humana pendientes; no se marcaron como aprobados ni verificados.
 
 ## 2026-10-16
+
+- SEM-US003-D06: conformidad del usuario con diseño/plan y método nativo con revisión independiente final. Se prepararon API-003, DM-003 y recorrido UX para revisión de T1, con límites/DTO/scopes, replay/versiones, binding histórico, migración v4 y restore. Stitch generó el catálogo desktop `52fd5fb8a6254ff4bf1165579309bc9e` en el proyecto existente, sin editar pantallas anteriores. Contratos y pantallas nuevas no se marcan aprobados; faltan revisión y detalle visual de formularios/diálogo. Sin código, migraciones ni permisos efectivos modificados.
+
+- A solicitud del usuario se preparó el plan de trabajo US-003 en `docs/superpowers/plans/2026-10-16-us-003-semantic-catalog-plan.md`, con ocho etapas T0–T7, archivos reales de integración, interfaces propuestas, ciclos RED/GREEN y pruebas de migración/restore, concurrencia, aislamiento, reintentos y UX. Se creó ledger independiente. Plan condicionado a revisión del diseño y contratos API-003/DM-003 aún por elaborar/aprobar; método de ejecución pendiente. No se modificó producto ni se ejecutaron nuevas pruebas funcionales.
+
+- SEM-US003-D05: el usuario aceptó R-01 a R-08 con sus cardinalidades para el incremento local y autorizó incorporar Dominio. Se cerraron IM2-Q1/2, las relaciones pasan de inferencia a FACT local y se añadió TRM-0024 en draft, con definición/responsable pendientes de revisión (GQ-05). Se sincronizaron IMD-002, RCP-002, diseño e índice sin aprobar el diseño completo ni iniciar implementación. Validaciones: glosario 24 términos/0 errores; modelo cuatro conceptos/ocho relaciones/0 errores/0 avisos. Render visual Mermaid continúa pendiente.
+
+- SEM-US003-D04: el usuario aprobó los mínimos de dominio/dimensión/medida, referencias existentes/autorizadas, pendientes de componentes visibles y protección/copia de dimensiones/medidas utilizadas. Se actualizaron decisiones y RCP-002 sin cerrar permisos ni completar la historia madre.
+- Se preparó el diseño escrito de US-003 para revisión y el modelo conceptual IMD-002 (cuatro nodos, KPI como representación derivada). El diseño diferencia D01–D04 de propuestas adicionales sobre alcance, completitud, fórmula textual, vínculos históricos y permisos locales. IMD-002 mantiene cardinalidades inferidas y una pregunta de glosario; no se diseñó esquema físico ni se implementó producto.
+
+- SEM-US003-D03: el usuario aprobó el catálogo reutilizable de dominios/dimensiones/medidas/KPI como base del diseño. Se actualizó RCP-002 y se abrió SEM-Q07 para la edición segura de componentes compartidos; protección/copia explícita es una propuesta, no una regla aprobada. Sin cambios de producto ni plan de implementación iniciado.
+
+- SEM-US003-D02: el usuario confirmó borradores de KPI con nombre/dominio, fórmula/unidad/grano/responsable opcionales con faltantes visibles y referencias declaradas existentes/autorizadas. Guardar no valida ni publica. Se actualizó RCP-002 sin extrapolar la política a otros elementos; la organización de componentes y el diseño siguen en discusión. Sin cambios de código.
+
+- SEM-US003-D01: el usuario confirmó un editor configurable de dominios y KPI propios, sin cambios de código para agregar definiciones. Ventas/Ingresos netos quedan como ejemplos, no valores fijos. Se actualizó RCP-002 y se resolvió SEM-Q01; borradores, roles, fórmulas, diseño y plan siguen pendientes. No se modificó producto ni se generaron pantallas externas.
+
+- El usuario expresó conformidad con la validación local de US-002 y pidió continuar con US-003 (UX-US002-D04). Se registra la aceptación local sin extenderla a producción ni a políticas empresariales. Los ocho pasos de implementación de US-002 están cerrados en su ledger, con evidencia final de 84 pruebas backend con PostgreSQL, 50 frontend y la revisión independiente corregida.
+- Se creó RCP-002 para iniciar descubrimiento de US-003: separa hechos, hipótesis, vacíos y decisiones; Ventas/Ingresos netos y la política de borradores semánticos son propuestas pendientes. No se implementó código ni se aprobaron fórmula empresarial, owners, permisos, diseño o plan de US-003.
 
 - El usuario aprobó API-002 y DM-002 para el incremento local (UX-US002-D02). Se preparó el plan US-002 con ocho tareas, ciclos de prueba, dependencias y verificación integral. Pendiente revisión del plan y selección del método de ejecución; no se implementó producto ni se cambió el gate productivo.
 

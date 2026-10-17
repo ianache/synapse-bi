@@ -14,13 +14,18 @@ async function post(request: APIRequestContext, headers: Record<string, string>,
   return response.json()
 }
 async function accessible(page: Page, name: string) {
+  mkdirSync('test-results/semantic-screens', {recursive: true})
   for (const width of [1440, 390]) {
     await page.setViewportSize({width, height: 1000})
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     const result = await new AxeBuilder({page}).analyze()
     expect(result.violations.map(v => ({id: v.id, elements: v.nodes.map(n => n.target)}))).toEqual([])
   }
+  await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); window.scrollTo(0, 0) })
+  await page.screenshot({path: `test-results/semantic-screens/${name}-mobile.png`, fullPage: true})
   await page.setViewportSize({width: 1440, height: 1000})
+  // Capture a stable top-of-page composition after the mobile/keyboard checks.
+  await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); window.scrollTo(0, 0) })
   mkdirSync('test-results/semantic-screens', {recursive: true})
   await page.screenshot({path: `test-results/semantic-screens/${name}.png`, fullPage: true})
 }
@@ -28,11 +33,42 @@ test.beforeEach(async ({page}) => {
   await page.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, route => route.abort())
 })
 
+test('Stitch catalog keeps table and selected detail side by side, and stacks without overflow on mobile', async ({page, request}) => {
+  const headers = await auth(request)
+  const domain = await post(request, headers, '/domains', {name: `Diseño ${crypto.randomUUID().slice(0, 8)}`, owner: 'Equipo de operaciones'})
+  const measure = await post(request, headers, '/components', {name: 'Tiempo de ciclo de entrega', domainId: domain.id, kind: 'measure', definition: 'Tiempo entre confirmación y entrega.', unit: 'Días', aggregation: 'AVG', grain: 'Entrega'})
+  await post(request, headers, '/components', {name: 'Volumen movilizado', domainId: domain.id, kind: 'measure'})
+  await post(request, headers, '/components', {name: 'Centro de distribución', domainId: domain.id, kind: 'dimension'})
+  await post(request, headers, '/kpi-definitions', {name: 'Entrega puntual', domainId: domain.id, measureIds: [measure.id]})
+  await page.goto('/catalogo-semantico')
+  await page.getByLabel('Dominio de negocio').selectOption(domain.id)
+  await page.getByRole('button', {name: 'Ver Tiempo de ciclo de entrega', exact: true}).click()
+  const panel = page.getByRole('complementary', {name: 'Ficha del elemento'})
+  await expect(panel.getByRole('heading', {name: 'Tiempo de ciclo de entrega', exact: true})).toBeVisible()
+  await expect(panel.getByRole('link', {name: 'Entrega puntual', exact: true})).toBeVisible()
+  await expect(panel.getByRole('link', {name: 'Editar', exact: true})).toHaveCount(0)
+  await page.setViewportSize({width: 1440, height: 1000})
+  const tableBox = await page.getByRole('table').boundingBox(), panelBox = await panel.boundingBox()
+  expect(tableBox!.x + tableBox!.width).toBeLessThanOrEqual(panelBox!.x)
+  await accessible(page, '05-stitch-catalog')
+  await page.setViewportSize({width: 390, height: 1000})
+  expect((await panel.boundingBox())!.y).toBeGreaterThan((await page.getByRole('table').boundingBox())!.y)
+  await page.getByRole('tab', {name: /Medidas/}).focus()
+  await page.keyboard.press('ArrowLeft')
+  await expect(page.getByRole('tab', {name: /Dimensiones/})).toBeFocused()
+  await expect(page.getByRole('button', {name: 'Ver Centro de distribución'})).toBeVisible()
+  await page.setViewportSize({width: 1440, height: 1000})
+  await page.getByRole('tab', {name: /Medidas/}).click()
+  await page.getByRole('link', {name: 'Nuevo elemento', exact: true}).click()
+  await expect(page.getByLabel('Tipo', {exact: true})).toHaveValue('measure')
+  await expect(page.getByLabel('Dominio', {exact: true})).toHaveValue(domain.id)
+})
+
 test('custom domain → shared measure → two KPI → copy → update only one; keyboard and axe', async ({page, request}) => {
   const headers = await auth(request), suffix = crypto.randomUUID().slice(0, 8)
   const domainName = `Logística ${suffix}`, measureName = `Tiempo ${suffix}`
   await page.goto('/catalogo-semantico')
-  await expect(page.getByRole('heading', {name: 'Catálogo semántico', exact: true})).toBeVisible()
+  await expect(page.getByRole('heading', {name: 'Catálogo semántico configurable', exact: true})).toBeVisible()
   await page.getByRole('link', {name: 'Crear dominio'}).click()
   await page.getByLabel('Nombre', {exact: true}).fill(domainName)
   await accessible(page, '01-domain')

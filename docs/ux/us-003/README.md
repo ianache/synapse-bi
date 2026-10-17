@@ -13,6 +13,11 @@ sources:
 
 # US-003 — Recorrido de definición y reutilización
 
+Mandato visual D08: **apego fiel al diseño de Google Stitch**, registrado en
+[AGENTS.md](../../../AGENTS.md). El cierre funcional previo no acredita conformidad
+visual. La corrección de `/catalogo-semantico`, su referencia exacta, diferencias de
+datos/alcance y evidencia están en [Conformidad visual](visual-conformance.md).
+
 Actualización 2026-10-17: recorrido implementado localmente en el worktree
 `.worktrees/us-003-semantic-catalog`, rama `feat/us-003-semantic-catalog`, por D07.
 Pruebas finales: backend 148 passed con PostgreSQL real; frontend 70 passed (un
@@ -123,7 +128,8 @@ No se cambian rutas previas ni se preinsertan ejemplos de Stitch en producción.
 
 ### Prueba manual local
 
-Desde el worktree, dos terminales PowerShell. Usar puertos libres propios;
+Desde el repositorio principal en `master` (US-003 integrada localmente en
+`ef910f3`), dos terminales PowerShell. Usar puertos libres propios;
 si están ocupados, cambiar puerto, origen CORS y proxy juntos, sin detener servicios ajenos.
 
 Backend, carpeta `codebase/backend`:

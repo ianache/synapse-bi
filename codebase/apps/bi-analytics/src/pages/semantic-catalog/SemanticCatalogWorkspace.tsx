@@ -13,9 +13,10 @@ import '../kpi-workspace.css'
 import '../sources.css'
 import '../sources-accessibility.css'
 import './semantic-catalog.css'
+import './stitch-catalog.css'
 
 const defaultRepository = new SemanticCatalogRepository()
-function Editor({repository, kind, id}: {repository: SemanticCatalogRepository; kind: ResourceKind; id?: string}) {
+function Editor({repository, kind, id, search}: {repository: SemanticCatalogRepository; kind: ResourceKind; id?: string; search: string}) {
   const options = useSemanticCatalogResource(useCallback(async signal => {
     const [domains, components, domain, component, kpi] = await Promise.all([
       repository.all('domains', {}, signal), kind === 'kpi-definitions' ? repository.all('components', {}, signal) : Promise.resolve([]),
@@ -28,22 +29,25 @@ function Editor({repository, kind, id}: {repository: SemanticCatalogRepository; 
   if (options.loading) return <p role="status">Cargando formulario…</p>
   if (options.error || !options.data) return <div role="alert">{options.error?.message}<button className="source-button" onClick={options.refresh}>Reintentar</button></div>
   const values = options.data
+  const parameters = new URLSearchParams(search)
+  const defaultDomainId = values.domains.find(domain => domain.id === parameters.get('domainId'))?.id ?? ''
+  const defaultKind = parameters.get('kind') === 'measure' ? 'measure' : 'dimension'
   return kind === 'domains' ? <DomainForm repository={repository} initial={values.domain} onSaved={saved => navigate(catalogPath(kind, saved.id))} />
-    : kind === 'components' ? <ComponentForm repository={repository} domains={values.domains} initial={values.component} onSaved={saved => navigate(catalogPath(kind, saved.id))} />
-    : <KpiDefinitionForm repository={repository} domains={values.domains} components={values.components} initial={values.kpi} onSaved={saved => navigate(catalogPath(kind, saved.id))} />
+    : kind === 'components' ? <ComponentForm repository={repository} domains={values.domains} initial={values.component} defaultKind={defaultKind} defaultDomainId={defaultDomainId} onSaved={saved => navigate(catalogPath(kind, saved.id))} />
+    : <KpiDefinitionForm repository={repository} domains={values.domains} components={values.components} initial={values.kpi} defaultDomainId={defaultDomainId} onSaved={saved => navigate(catalogPath(kind, saved.id))} />
 }
-export function SemanticCatalogWorkspace({path, search: _search, repository = defaultRepository}: {path: string; search: string; repository?: SemanticCatalogRepository}) {
+export function SemanticCatalogWorkspace({path, search, repository = defaultRepository}: {path: string; search: string; repository?: SemanticCatalogRepository}) {
   const me = useSemanticCatalogResource(useCallback(signal => repository.me(signal), [repository]), 'semantic-permissions')
   const parts = path.split('/').filter(Boolean), kind = parts[1], id = parts[2] ? decodeURIComponent(parts[2]) : undefined
   const known = kind === 'domains' || kind === 'components' || kind === 'kpi-definitions'
   const canWrite = semanticWritable(me.data?.scopes ?? [])
   return <SynapseShell active="semantic" breadcrumb="Catálogo semántico"><div className="sources-workspace semantic-workspace">
-    <div className="semantic-banner" role="note">Definiciones en borrador. Guardar no publica ni ejecuta fórmulas.</div>
+    {parts.length !== 1 && <div className="semantic-banner" role="note">Definiciones en borrador. Guardar no publica ni ejecuta fórmulas.</div>}
     {me.loading ? <p role="status">Comprobando permisos…</p> : me.error ? <div role="alert">{me.error.message}<button className="source-button" onClick={me.refresh}>Reintentar</button></div>
       : !me.data?.scopes.includes('semantic:read') ? <div role="alert">No tienes permiso para consultar el catálogo semántico.</div>
       : parts.length === 1 ? <CatalogList repository={repository} canWrite={canWrite} />
       : !known || !id || parts.length > 4 || (parts[3] && parts[3] !== 'editar') ? <div role="alert">Pantalla no disponible.</div>
-      : id === 'nuevo' || parts[3] === 'editar' ? canWrite ? <Editor key={`${kind}/${id}`} repository={repository} kind={kind} id={id === 'nuevo' ? undefined : id} /> : <div role="alert">No tienes permiso para editar.</div>
+      : id === 'nuevo' || parts[3] === 'editar' ? canWrite ? <Editor key={`${kind}/${id}/${id === 'nuevo' ? search : ''}`} repository={repository} kind={kind} search={search} id={id === 'nuevo' ? undefined : id} /> : <div role="alert">No tienes permiso para editar.</div>
       : <SemanticDetail key={`${kind}/${id}`} repository={repository} kind={kind} id={id} canWrite={canWrite} />}
   </div></SynapseShell>
 }
