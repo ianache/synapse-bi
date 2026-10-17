@@ -197,6 +197,16 @@ la API no se presenta como despliegue productivo completo.
 - `database.py`: esquema v1, claves compuestas tenant/recurso, transacciones.
 - `demo.py`: fixtures sintéticos insertados sólo mediante opt-in.
 - `app.py`: composición, rutas, errores, CORS y request IDs.
+- `semantic_catalog/`: US-003, dominios/componentes/KPI declarativos en SQLite v4;
+  referencias, protección/copia, versiones e idempotencia. No SQL de usuario ni ejecución de fórmulas.
+
+US-003 añade `/api/v1/semantic-catalog` y scopes `semantic:read`/`semantic:write`;
+personas locales data-admin/other-data-admin únicamente. No conceder nuevos scopes
+productivos de forma automática. API/modelo: [API-003](../../knowledge-base/design/api-contracts/API-003-semantic-catalog.md),
+[DM-003](../../knowledge-base/design/data-models/DM-003-semantic-catalog.md).
+Inicialización v4 es aditiva; respaldar consistentemente antes de migrar una base
+valiosa. Binarios viejos rechazan v4: rollback exige conservar v4 y restaurar una
+copia probada v3 en archivo nuevo, no borrar tablas ni usar down automático.
 
 ```powershell
 uv run --extra test --frozen pytest

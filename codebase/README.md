@@ -138,6 +138,12 @@ capacidades próximas; el detalle del KPI sí incluye un lineage ilustrativo.
 
 ### Verificación
 
+US-003: catálogo configurable disponible en `/catalogo-semantico` con API de
+desarrollo habilitada; no sustituye KPI publicados/fixtures ni ejecuta fórmulas.
+Guía de arranque y prueba manual en [UX US-003](../docs/ux/us-003/README.md).
+`npm run test:semantic-catalog` usa backend/frontend propios (8006/5186 por defecto)
+y una base SQLite temporal distinta en cada ejecución; no reutiliza servicios.
+
 ```powershell
 npm run typecheck
 npm test
