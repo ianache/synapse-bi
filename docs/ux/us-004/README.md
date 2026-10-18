@@ -4,6 +4,12 @@ Fecha: 2026-10-17. Estado: **prototipos desktop generados; revisión visual pend
 Actualización de ejecución: plan y contratos aprobados por el usuario. Primera
 implementación en rama aislada; [resultados, diferencias visuales y prueba manual](verification.md).
 Los apartados siguientes conservan el registro histórico previo a la implementación.
+
+Actualización UX-US004-D02 (2026-10-17): el usuario confirmó las referencias
+compartidas y autorizó conservar el control compacto «Ajustar selección de KPI»
+en comparación, sin desplazar la matriz ni el resumen lateral. La creación vigente
+sigue siendo `a24b9372c98041b7901baddfa9765dfe`; `027921d4aa2a4725870665696267549a`
+es antecedente, no una quinta pantalla que deba implementarse por duplicado.
 El usuario pidió avanzar con pantallas en Stitch. Esto autoriza esta generación,
 no demuestra aprobación íntegra de la especificación, contratos, plan o ejecución.
 

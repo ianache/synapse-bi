@@ -6,26 +6,35 @@ en esta sesión. No implica aceptación visual ni cierre de la historia madre.
 
 ## Evidencia ejecutada
 
-- Backend: suite completa186passed/1PostgreSQL opt-in omitida (44.25s).
-- Frontend: suite final93passed/38archivos (191.99s). Typecheck y build exit0
-  después de las correcciones finales; git diff --check sin errores.
-- Modelos: cuatro pruebas Playwright en verde (41.4s), API8010/UI5190, SQLite única.
+- Backend: suite completa **187passed, ninguna omitida** con PostgreSQL habilitado
+  (148.44s). Credencial de laboratorio usada desde su archivo original tras autorización
+  explícita del usuario; archivo no copiado ni contenido mostrado.
+- Frontend: suite final **97passed/40archivos** (284.77s), incluido historial
+  RED→GREEN. Typecheck y build finales exit0; git diff --check sin errores.
+  Distribución de cuatro WOFF2 y licencia OFL en `dist/licenses/` comprobada.
+- Modelos: cinco pruebas Playwright en verde (1.9m), API8010/UI5190, SQLite única.
   Respuesta perdida/reintento crea un solo modelo; cambios del catálogo no alteran
   capturas; clonación, cancelación, confirmación e historial; 409/412 y recuperación;
   tenant ajeno404; falta de scopes bloquea lectura; consumidores KPI existentes intactos.
-- Catálogo: tres pruebas de navegador en verde (40.5s), API8011/UI5191.
-- API/consumidores: tres pruebas de navegador en verde (25.2s), API8012/UI5192.
-- Smoke: siete pruebas en verde (27.1s), fixtures/UI5193. El servidor existente4173
+- Catálogo: regresión previa tres pruebas en verde (40.5s), API8011/UI5191.
+- API/consumidores: regresión previa tres pruebas en verde (25.2s), API8012/UI5192.
+- Smoke: regresión previa siete pruebas en verde (27.1s), fixtures/UI5193. El servidor existente4173
   no se reutilizó ni detuvo. API8006/UI5186 y PostgreSQL del usuario intactos.
-- Fuentes/datasets navegador y PostgreSQL opt-in: **no ejecutados**; requieren
-  secretos de laboratorio no trasladados al worktree. Las pruebas backend/unitarias
-  existentes de fuentes y datasets sí forman parte de las suites completas.
+- Fuentes: dos pruebas de navegador aprobadas (1.0m), API8013/UI5194.
+- Datasets: cuatro pruebas de navegador aprobadas (2.9m), API8014/UI5195.
+  SQLite con nombre UUID en ambas suites, sin reutilizar servidores. PostgreSQL
+  local sólo se observa con el lector de laboratorio; no se modifican tablas Gold.
 
 Comandos en `codebase`: `npm run test:semantic-models`,
 `npm run test:semantic-catalog` (BI_SEMANTIC_API_PORT8011/UI_PORT5191),
 `npx playwright test --config playwright.api.config.ts` (BI_API_TEST_API_PORT8012/
 UI_PORT5192, CI=true), `npx playwright test --config playwright.us004-smoke.config.ts`.
 Chrome local mediante PLAYWRIGHT_EXECUTABLE_PATH; no navegador instalado por esta tarea.
+Laboratorio: `BI_LAB_READER_PASSWORD_FILE` apunta al archivo existente del directorio
+principal; `BI_TEST_POSTGRES=true` para backend. Navegador usa las opciones
+`BI_SOURCE_TEST_API_PORT/UI_PORT/DATABASE_PATH` y
+`BI_DATASET_TEST_API_PORT/UI_PORT/DATABASE_PATH`. La ruta de archivo se pasa al proceso,
+no su contenido. Los defaults anteriores se conservan para ejecución en el checkout principal.
 
 ## Revisión visual
 
@@ -37,24 +46,30 @@ Las tablas tienen scroll interno. Teclado: tabs con flechas/Home/End y foco visi
 El pie móvil ya no tapa el formulario; confirmar cambios conserva la columna
 izquierda de la matriz comparativa en desktop.
 
-No se declara fidelidad pixel-perfect ni aceptación visual. Se conservan estructura
-de tarjetas, selección con resumen lateral, contenido capturado e historial y
-comparación con acción explícita. Además de las cinco excepciones autorizadas,
-hay diferencias que deben revisarse antes de aceptar visualmente:
+La continuación reconsultó captura/HTML exactos de las cuatro referencias. Se
+corrigieron las diferencias identificadas en la primera entrega:
 
-- Shell compartido: agrupación de navegación, perfil y cabecera no son una copia
-  exacta de la cabecera compacta de las referencias US-004.
-- Densidad/espaciado y aviso de gobernanza ámbar uniforme frente a variantes
-  azul/rojo de los prototipos; resumen lateral con listas en lugar de todas las
-  fichas técnicas ilustradas en Stitch.
-- Comparación expone un desplegable para ajustar KPI del mismo dominio, necesario
-  para editar la selección aprobada, pero no dibujado así en la referencia.
-- Fixtures de prueba propias, sin copiar nombres, fechas, números o procedencias
-  ficticias de Stitch a la base. Los UUID asignados por servidor cambian el largo
-  del contenido. Fuentes web externas bloqueadas en E2E: screenshots usan fallback.
+- Shell sólo en modelos: grupos General/Gobernanza, cabecera/perfil compactos,
+  acciones de maqueta no implementadas identificadas como no disponibles.
+- Tipografías Hanken Grotesk/Plus Jakarta Sans servidas localmente, con licencia
+  distribuida y alias scoped: prueba de carga aprobada con CDN externos bloqueados.
+- Paleta, jerarquía y densidad según exportación: aviso neutro/azul en lista,
+  ámbar en creación, rojo en detalle; cabecera de detalle en tarjeta blanca.
+- Fichas técnicas de medidas/dimensiones y procedencia con IDs/revisiones reales,
+  integridad de captura, cuatro tarjetas de resumen de comparación y confirmación
+  bajo la matriz, en su misma columna.
+- Historial visible debajo del contenido capturado, como la referencia de detalle,
+  además del acceso por pestaña. Fallar su carga no oculta la captura confirmada.
+- Lista con datos propios y estado vacío fotografiados por separado, desktop/móvil.
+- Control compacto de selección aprobado explícitamente como UX-US004-D02.
 
-Estas diferencias no son nuevas excepciones aprobadas. El mandato de apego fiel
-a Stitch sigue vigente y la aceptación visual permanece pendiente.
+Se mantienen las cinco excepciones UX-US004-D01. Nombres/UUID/fechas/faltantes,
+conteos autorizados y procedencias proceden de API, no del ejemplo Stitch. No se
+copian certificaciones, versiones de motor ni claims ISO del mockup a la aplicación.
+No se declara igualdad pixel-perfect: los datos propios, el texto obligatorio de
+acciones no disponibles, las dos decisiones UX aprobadas y la adaptación móvil
+producen diferencias esperables. La comparación visual del autor ya está ejecutada;
+**la aceptación visual/funcional por el usuario sigue pendiente**.
 
 ## Prueba manual
 
@@ -101,4 +116,5 @@ tenant/dominio y retención aprobada siguen siendo gates productivos.
 Revisión independiente finalizada: [hallazgos y correcciones verificadas](code-review.md).
 Tres regresiones de recuperación RED→GREEN y paginación SQLite RED→GREEN;
 suite completa verde después de la única pasada de correcciones. No se autoriza
-merge/push automático. La conformidad visual exacta sigue pendiente.
+merge/push automático. Implementación y verificación técnica de la primera entrega
+completadas; tu aceptación visual/funcional y la integración siguen pendientes.

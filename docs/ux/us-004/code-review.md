@@ -43,6 +43,12 @@ Una sola pasada de correcciones, sin segunda revisión delegada.
 - Base visual/documental preexistente: preservada aparte en282457b; no atribuida a
   las nuevas funcionalidades ni re-auditada íntegramente.
 
-No menores de código diferidos tras reclasificar/corregir el historial. Permanecen
-la aceptación visual y las verificaciones de laboratorio explícitamente omitidas.
+No menores de código diferidos tras reclasificar/corregir el historial. En ese
+checkpoint quedaban pendientes la aceptación visual y las verificaciones de laboratorio.
+Actualización de continuación: laboratorio ya ejecutado con autorización expresa;
+suite backend187passed, frontend97passed, navegador modelos5/fuentes2/datasets4.
+Ajustes de presentación e historial verificados por el autor con RED→GREEN,
+capturas desktop/móvil y tipografías locales. No hubo segunda revisión delegada;
+el rango de la revisión independiente original sigue siendo282457b..4874ec5.
+La aceptación visual/funcional humana permanece pendiente; detalle en verification.md.
 No se declara merge autorizado, conformidad visual exacta ni cierre de US-004 madre.

@@ -10,6 +10,13 @@
 
 **Spec:** [primera entrega](/docs/superpowers/specs/2026-10-17-us-004-model-versions-design.md).
 
+**Estado de ejecución 2026-10-17:** T1–T7 completadas técnicamente en el worktree
+`feat/us-004-model-versions`. Ledger de este plan registra RED/GREEN, decisiones,
+revisión independiente y evidencias. [Verificación y prueba manual](/docs/ux/us-004/verification.md):
+187backend/97frontend aprobadas; navegador modelos5/fuentes2/datasets4 aprobadas.
+Aceptación visual/funcional humana e integración pendientes. Las casillas siguientes
+conservan el plan original; el ledger es el registro de ejecución, no esta plantilla.
+
 ## Global Constraints
 
 - Exactamente un dominio por modelo; varios modelos posibles por dominio.
