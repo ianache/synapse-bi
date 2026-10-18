@@ -40,6 +40,15 @@ test.beforeEach(async ({page}) => {
   await page.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, route => route.abort())
 })
 
+test('Stitch typography is loaded locally even when external font services are unavailable', async ({page}) => {
+  await page.goto('/modelos-semanticos')
+  await expect(page.getByRole('heading', {name: 'Modelos semánticos', exact: true})).toBeVisible()
+  await expect.poll(() => page.evaluate(async () => {
+    await document.fonts.ready
+    return ['Hanken Grotesk', 'Plus Jakarta Sans'].every(name => [...document.fonts].some(font => font.family.includes(name) && font.status === 'loaded'))
+  })).toBe(true)
+})
+
 test('Stitch flow: lost creation response, stable capture, clone, explicit update and history; axe desktop/mobile', async ({page, request}) => {
   const s = await seed(request)
   const before = await (await request.get('/api/v1/kpis', {headers: s.headers})).json()
@@ -66,9 +75,14 @@ test('Stitch flow: lost creation response, stable capture, clone, explicit updat
   const parts = new URL(page.url()).pathname.split('/').filter(Boolean), modelId = parts[1], firstId = parts[3]
   const models = await (await request.get(base + '?q=' + encodeURIComponent(s.name), {headers: s.headers})).json()
   expect(models.total).toBe(1)
+  await page.getByRole('link', {name: 'Volver a modelos', exact: false}).click()
+  await expect(page.getByRole('link', {name: `Abrir ${s.name}`, exact: true})).toBeVisible()
+  await evidence(page, '01b-list-populated')
+  await page.getByRole('link', {name: `Abrir ${s.name}`, exact: true}).click()
   await expect(page.getByText('Cambios del catálogo: no comprobados', {exact: true})).toBeVisible()
   await evidence(page, '03-detail')
   await page.getByRole('button', {name: 'Preparar nueva versión', exact: true}).click()
+  await expect(page.getByText('Borrador 2 · revisión 1', {exact: true})).toBeVisible()
   await expect(page).not.toHaveURL(new RegExp(firstId + '$'))
   await expect(page.getByRole('heading', {name: s.name, exact: true})).toBeVisible()
   const secondId = new URL(page.url()).pathname.split('/').pop()!

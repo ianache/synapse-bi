@@ -42,7 +42,7 @@ export function SemanticModelsWorkspace({path, search = '', repository = default
   const readable = modelReadable(identity.data?.scopes ?? []), writable = modelWritable(identity.data?.scopes ?? [])
   const create = parts.length === 2 && parts[1] === 'nuevo'
   const existing = parts.length === 2 && parts[1] !== 'nuevo' || (parts[2] === 'borradores' && [4, 5].includes(parts.length) && (parts.length === 4 || parts[4] === 'comparar'))
-  return <SynapseShell active="models" breadcrumb="Modelos semánticos"><div className="models-workspace">
+  return <SynapseShell active="models" breadcrumb="Modelos semánticos"><div className="models-workspace" data-view={create ? "create" : parts[4] === "comparar" ? "compare" : existing ? "detail" : "list"}>
     {identity.loading ? <p role="status">Comprobando permisos…</p> : identity.error ? <ModelError error={identity.error} retry={identity.refresh} />
       : !readable ? <div role="alert" className="models-error">No tienes permiso para consultar modelos y capturas semánticas.</div>
       : parts.length === 1 ? <ModelList repository={repository} catalogRepository={catalogRepository} canWrite={writable} />
