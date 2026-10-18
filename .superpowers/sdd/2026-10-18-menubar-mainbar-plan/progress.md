@@ -73,3 +73,22 @@ library showcase module, not in application/domain code. No extra public compone
 Task 5: complete (based465645; preview/story contracts3passed2files22.99s;
 typecheck exit0; build-storybook exit0,165modules,4WOFF2 and license in distribution).
 Task6 brief read; isolated Vite5197, fixture-only API interception, no backend or DB.
+Task6 BASE7aa88cc: initial acceptance2passed/3failed3.3m. One test label typo
+Explorar KPIs corrected to real Explorar KPI. Browser exposed text200% neutral-profile
+word overflow and legacy Google Fonts import. Fixed overflow-wrap and local font
+import; original public font names alias the same4WOFF2 (no binary duplication).
+Dashboard principal heading regression RED1failed/2passed29.39s; h2 changed to h1.
+Second acceptance5passed4.1m, including axe desktop/mobile/drawer with0violations,
+native focus/scroll/breakpoint/business modal and no unexpected API/external requests.
+Ruling: route matrix test budget240s instead120s — one test deliberately traverses
+23 direct/SPA entries on this slow Windows host; no assertions removed — cost if
+wrong: slower timeout diagnosis, no production behavior change.
+Task6 expanded acceptance6passed4.5m; fixture/config/spec explicit TypeScript check
+exit0; app/typecheck/Storybook builds exit0,4WOFF2 and OFL confirmed in both outputs.
+Dashboard h1 regression GREEN3passed in the complete frontend run (still progressing).
+Ruling: retain this plan ledger/worktree/evidence after delivery — explicit plan
+prohibits automatic cleanup, overriding generic execution-skill cleanup — cost if
+wrong: retained disk usage; no user files are removed.
+Task 6: complete (base7aa88cc; full frontend130passed45files941.07s exit0;
+browser6passed4.5m; app/types/Storybook and test-specific tsc exit0; diffcheck exit0).
+Independent whole-branch review gate follows; no merge or completion handoff yet.

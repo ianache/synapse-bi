@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import './assets/navigation-fonts/fonts.css';
 
 .bi-root { font-family: var(--bi-font-body); color: #0f172a; font-size: 14px; line-height: 1.5; }
 .bi-root *, .bi-root *::before, .bi-root *::after { box-sizing: border-box; }

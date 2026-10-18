@@ -9,6 +9,7 @@ describe('DashboardPage', () => {
     render(<DashboardPage adapter={createMockSemanticAdapter()}/>)
     expect(screen.getByRole('link',{name:'Modelos semánticos'})).toHaveAttribute('href','/modelos-semanticos')
     expect(screen.getByRole('link',{name:'Dashboards'})).toHaveAttribute('aria-current','page')
+    expect(screen.getByRole('heading',{name:'Executive dashboard',level:1})).toBeInTheDocument()
   })
   afterEach(cleanup)
   it('renders dashboard content after loading', async () => {
