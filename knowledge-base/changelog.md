@@ -8,6 +8,10 @@ generated:
 
 # Changelog
 
+## 2026-10-18
+
+- El usuario (`human:ianache`) solicitó expresamente «aprobar ADR-019». Se registró `adr_status: Aceptado` y la decisión humana con fecha, manteniendo `status: draft`, sin añadir `verified`, justificar por el decisor ni cerrar detalles técnicos pendientes. Se sincronizaron índice de ADRs, índice de Knowledge Base, ASR-006 y su catálogo; la disposición del candidato ASR y los demás ADRs no se aprobaron. Se conserva el texto referido a Claude Design, sin sustituir el mandato vigente de fidelidad a Google Stitch. Sin cambios de implementación ni commit.
+
 ## 2026-10-17
 
 - UX-US004-D01: usuario aprobó cinco correcciones acotadas respecto al export Stitch (sin Exportar, captura estable, sin umbral inventado, confirmación desmarcada y Ticket promedio consistente), conservando composición. No implica aceptación visual de implementación ni actualización verificada del export.

@@ -31,7 +31,7 @@ Este archivo funciona como indice. Cada decision arquitectonica tiene su propio 
 | IA | [ADR-016 - IA sobre modelos autorizados](/knowledge-base/architecture/ADR-016-ia-sobre-modelos-autorizados.md) | Propuesto |
 | Capas logicas | [ADR-017 - Capas logicas de la plataforma](/knowledge-base/architecture/ADR-017-capas-logicas-de-la-plataforma.md) | Propuesto |
 | Control plane y data plane | [ADR-018 - Separacion de control plane y data plane](/knowledge-base/architecture/ADR-018-separacion-control-plane-data-plane.md) | Propuesto |
-| Design System y Atomic Design | [ADR-019 - Atomic Design en el Design System](/knowledge-base/architecture/ADR-019-atomic-design-en-design-system.md) | Propuesto |
+| Design System y Atomic Design | [ADR-019 - Atomic Design en el Design System](/knowledge-base/architecture/ADR-019-atomic-design-en-design-system.md) | Aceptado |
 
 ## Decisiones extraidas
 
@@ -41,11 +41,11 @@ Este archivo funciona como indice. Cada decision arquitectonica tiene su propio 
 - Los motores se seleccionan por workloads, benchmark y aislamiento multitenant.
 - `tenant_id` no es el unico mecanismo de aislamiento.
 - La IA consulta modelos, documentos y datos autorizados y no redefine KPI silenciosamente.
-- El Design System se propone con Atomic Design y una librería reutilizable de componentes.
+- El Design System adopta Atomic Design y una librería reutilizable de componentes según ADR-019, aceptado por `human:ianache` el 2026-10-18.
 
 ## Estado comun
 
-Todos los ADRs estan en `status: draft` y `adr_status: Propuesto`. No se encontro una decision humana aprobatoria, por lo que no se ha incluido `decision` ni `verified`.
+Todos los ADRs conservan `status: draft`. ADR-019 está en `adr_status: Aceptado`, con `decision` de `human:ianache` registrada el 2026-10-18. ADR-001 a ADR-018 permanecen en `adr_status: Propuesto`; esta aprobación no se extiende a ellos ni a los candidatos ASR. No se añade `verified`: la revisión textual se mantiene separada de la aceptación de la decisión.
 
 ## Pendientes transversales
 

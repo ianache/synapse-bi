@@ -4,6 +4,7 @@ id: ASR-006
 title: Design System reutilizable basado en Atomic Design
 description: Candidato para asegurar una librería compartida de componentes, patrones y tokens para las experiencias multiproducto.
 status: draft
+related: [ADR-019]
 generated:
   by: agent/gpt-5
   at: 2026-10-15T00:00:00-05:00
@@ -23,10 +24,10 @@ sources:
 
 ## Classification
 
-- **Requirement ID:** FR-006, más decisión propuesta en ADR-019.
+- **Requirement ID:** FR-006, más decisión aceptada en ADR-019.
 - **Tipo:** candidato ASR; no es un ASR aprobado.
 - **Disposition:** `[PENDIENTE: CANDIDATE / REJECT / INVESTIGATE]`.
-- **Confianza:** Media; Atomic Design fue solicitado por el usuario pero no está definido en el PRD.
+- **Confianza:** Media; Atomic Design está aceptado en ADR-019, pero no está definido en el PRD ni implica disposición de este candidato ASR.
 
 ## Quality concern
 
@@ -36,7 +37,11 @@ Consistencia visual y de interacción, accesibilidad, compatibilidad entre produ
 
 - PRD §2.1 y CHG-01 describen la evolución desde una PoC y la reutilización de UX/componentes.
 - PRD FR-006 exige componer dashboards y visualizaciones mediante consultas reutilizables, en un contexto multiproducto.
-- ADR-019 propone Atomic Design, librería reutilizable y Claude Design, pero deja abiertos framework, ownership, versionado, accesibilidad y primer release.
+- ADR-019, aceptado por `human:ianache` el 2026-10-18, establece Atomic Design, librería reutilizable y Claude Design, pero deja abiertos framework, ownership, versionado, accesibilidad y primer release.
+
+## Decisiones que lo atienden
+
+- [ADR-019 — Atomic Design en el Design System](/knowledge-base/architecture/ADR-019-atomic-design-en-design-system.md), aceptado el 2026-10-18. Atiende el criterio estructural y la reutilización; no aprueba métricas, detalles técnicos ni la disposición de ASR-006.
 
 ## Why it may be architecture-significant
 
@@ -48,7 +53,7 @@ Experiencia, frontend, integración, evolución, accesibilidad, operación de li
 
 ## Missing evidence / questions
 
-- ¿Se confirma Atomic Design como estándar obligatorio o guía?
+- Atomic Design está confirmado como criterio estructural por ADR-019; su taxonomía exacta y los criterios de conformidad permanecen abiertos.
 - ¿Cuál es la taxonomía y qué queda fuera de la librería?
 - ¿Qué framework, repositorio, empaquetado y estrategia de releases se usarán?
 - ¿Quién aprueba contribuciones y breaking changes?

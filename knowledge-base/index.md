@@ -59,6 +59,7 @@ generated:
 
 - [ADRs - BI Analytics Platform v1.1](/knowledge-base/architecture/ADRs.md)
 - [ADR-001 a ADR-010 - decisiones Sprint 0](/knowledge-base/architecture/ADRs.md)
+- [ADR-019 — Atomic Design en el Design System: decisión aceptada por human:ianache el 2026-10-18; revisión textual pendiente](/knowledge-base/architecture/ADR-019-atomic-design-en-design-system.md)
 
 ## Contratos de API
 
