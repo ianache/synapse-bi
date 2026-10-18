@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import type { LineageReference, MetricCardProps, SemanticQueryState } from './semantic'
+import type {NavigationItem, ShellAction} from '../organisms/navigation/types'
+
+// Compile-time consumer contract: unavailable destinations/actions cannot pretend to work.
+// @ts-expect-error unavailable destination cannot carry an operative href
+const invalidDestination: NavigationItem = {id: 'x', label: 'X', href: '/x', unavailableReason: 'Unavailable'}
+// @ts-expect-error an action must explain why no handler exists
+const invalidAction: ShellAction = {id: 'x', label: 'X'}
+void invalidDestination
+void invalidAction
 
 describe('public contracts', () => {
   it('accepts presentational metric and semantic query values', () => {

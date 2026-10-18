@@ -1,5 +1,6 @@
 import type { SVGProps } from 'react'
 const paths = {
+ shapes:'M3 3h7v7H3z M17 3l5 8H12z M21 18a5 5 0 1 1-10 0 5 5 0 0 1 10 0 M3 15h5v7H3z',
  key:'M15 7a2 2 0 0 1 2 2 M21 9a6 6 0 0 1-7.74 5.74L11 17H9v2H7v2H3v-4l6-6A6 6 0 1 1 21 9z',
  lock:'M5 11h14v10H5z M8 11V7a4 4 0 0 1 8 0v4 M12 15v2',
  server:'M3 3h18v7H3z M3 14h18v7H3z M17 6.5h.01 M17 17.5h.01',
