@@ -4,5 +4,6 @@ storybook-static
 playwright-report
 test-results
 test-results-models
+test-results-models-smoke
 **/.env.local
 **/.env.*.local

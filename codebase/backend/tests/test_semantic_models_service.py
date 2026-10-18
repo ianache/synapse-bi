@@ -1,4 +1,6 @@
 from dataclasses import replace
+from contextlib import contextmanager
+import sqlite3
 
 import pytest
 
@@ -86,3 +88,29 @@ def test_clone_preserves_history_and_is_idempotent(tmp_path):
     assert exc.value.code == 'draft_not_editable'
     history = service.list_drafts(user, mid, ModelFilters(limit=1))
     assert history['total'] == 2 and history['items'][0]['sequence'] == 2
+
+
+def test_history_does_not_materialize_capture_documents_outside_page(tmp_path, monkeypatch):
+    db, _, service, user, _, result = setup(tmp_path)
+    mid, did = result['model']['id'], result['draft']['id']
+    for revision in range(1, 6):
+        service.clone(user, mid, CloneDraft(sourceDraftId=did), f'"{revision}"', f'clone-{revision}', 'req')
+    connect = db.connect
+    materialized = []
+
+    @contextmanager
+    def tracked_connection(write=False):
+        with connect(write=write) as conn:
+            def track(cursor, values):
+                row = sqlite3.Row(cursor, values)
+                if 'capture_document' in row.keys():
+                    materialized.append(len(row['capture_document']))
+                return row
+            conn.row_factory = track
+            yield conn
+
+    monkeypatch.setattr(db, 'connect', tracked_connection)
+    page = service.list_drafts(user, mid, ModelFilters(limit=2, offset=1))
+    assert page['total'] == 6
+    assert [row['sequence'] for row in page['items']] == [5, 4]
+    assert len(materialized) <= 2, 'A page must not allocate capture documents from the entire history'

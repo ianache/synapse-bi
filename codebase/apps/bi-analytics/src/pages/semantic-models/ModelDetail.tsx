@@ -1,12 +1,12 @@
 import {useEffect, useRef, useState} from 'react'
 import type {SemanticModelsRepository} from '../../adapters/semanticModelsRepository'
-import type {ModelDetailRecord} from '../../domain/semanticModels'
+import type {ModelDetailRecord, ModelDraft} from '../../domain/semanticModels'
 import {draftPath} from '../../domain/semanticModels'
 import {AppLink, navigate} from '../../components/SynapseShell'
 import {CaptureSummary, ModelError, ModelNotice, modelDate, modelTabKeys} from './ModelsChrome'
 import {ModelVersionHistory} from './ModelVersionHistory'
 
-export function ModelDetail({repository, detail, canWrite, editable = true, onReload}: {repository: SemanticModelsRepository; detail: ModelDetailRecord; canWrite: boolean; editable?: boolean; onReload?: () => void}) {
+export function ModelDetail({repository, detail, canWrite, editable = true, onReload, onSaved}: {repository: SemanticModelsRepository; detail: ModelDetailRecord; canWrite: boolean; editable?: boolean; onReload?: () => void; onSaved?: (result: ModelDraft) => void}) {
   const [tab, setTab] = useState('content'), [pending, setPending] = useState(false), [error, setError] = useState<Error>()
   const active = useRef(true), locked = useRef(false), key = useRef(crypto.randomUUID())
   useEffect(() => {active.current = true; return () => {active.current = false}}, [])
@@ -14,7 +14,7 @@ export function ModelDetail({repository, detail, canWrite, editable = true, onRe
   async function clone() {
     if (locked.current || !canWrite) return
     locked.current = true; setPending(true); setError(undefined)
-    try {const saved = await repository.clone(model, draft.id, key.current); if (active.current) navigate(draftPath(model.id, saved.id))}
+    try {const saved = await repository.clone(model, draft.id, key.current); if (active.current) {if (onSaved) onSaved(saved); else navigate(draftPath(model.id, saved.id))}}
     catch (e) {if (active.current) setError(e instanceof Error ? e : new Error('No se pudo preparar la versión.'))}
     finally {if (active.current) {locked.current = false; setPending(false)}}
   }

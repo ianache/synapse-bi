@@ -148,10 +148,13 @@ class SemanticModelsService:
         with self.db.connect() as conn:
             conn.execute('BEGIN')
             ModelRepository(conn, user).model(model_id)
-            rows = conn.execute('SELECT * FROM models_drafts WHERE tenant_id=? AND model_id=? ORDER BY sequence DESC,id ASC',
-                                (user.tenant, model_id)).fetchall()
-            return {'items': [_summary(row) for row in rows[filters.offset:filters.offset + filters.limit]],
-                    'total': len(rows), 'limit': filters.limit, 'offset': filters.offset}
+            total = conn.execute('SELECT count(*) FROM models_drafts WHERE tenant_id=? AND model_id=?',
+                                 (user.tenant, model_id)).fetchone()[0]
+            rows = conn.execute('''SELECT * FROM models_drafts WHERE tenant_id=? AND model_id=?
+                ORDER BY sequence DESC,id ASC LIMIT ? OFFSET ?''',
+                (user.tenant, model_id, filters.limit, filters.offset)).fetchall()
+            return {'items': [_summary(row) for row in rows],
+                    'total': total, 'limit': filters.limit, 'offset': filters.offset}
 
     def clone(self, user, model_id, body, etag, key, request_id):
         authorize(user, write=True)
