@@ -117,3 +117,18 @@ No se ejecutan suites PostgreSQL para este cambio UI. Pruebas de navegación no
 certifican persistencia/seguridad de backend ni funcionalidades no implementadas.
 Los controles Sidebar/TopBar anteriores y sus contratos siguen exportados.
 No merge, push, publicación, reinicio ni eliminación automática del worktree.
+
+## Integración local autorizada
+
+2026-10-18: el usuario eligió la opción1 (fusionar localmente con master).
+Fast-forward de master `6a04a1e` a `5f6a6b5`, sin conflictos, pull, push ni autostash.
+Verificaciones nuevas ejecutadas desde el directorio principal, con la librería
+workspace resuelta dentro de master:138/138 pruebas frontend en45archivos,
+491.71s;7/7 pruebas de navegador en4.7min; typecheck, aplicación y Storybook exit0.
+Persisten únicamente las advertencias de herramientas y el menor cosmético ya
+documentados; no se modifica alcance de producto durante la integración.
+
+Se conservan los cambios locales previos de los ledgers US-002/US-003 y sus
+artefactos no versionados. No se leen credenciales ni se ejecutan suites PostgreSQL.
+Los servicios manuales no se reinician. Rama y worktree de navegación se conservan
+con su evidencia, conforme al plan; no se realiza limpieza automática.

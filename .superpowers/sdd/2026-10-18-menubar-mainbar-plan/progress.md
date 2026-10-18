@@ -120,3 +120,9 @@ Independent review complete, one fix pass complete, no critical/important left;
 one cosmetic minor deferred as above. No second review, merge, push or cleanup.
 Delivery commitaf5843c; final working tree clean. Committed-range whitespace check
 exit2 confirms exactly the3documented EOF lines (reviewer had reported exit1).
+Integration2026-10-18: user chose option1. Master6a04a1e→5f6a6b5 fast-forward,
+no conflicts/autostash/pull/push. Existing unrelated US002/US003 ledger edits and
+untracked design/screens preserved. Fresh root-directory verification: frontend
+138passed45files491.71s exit0; browser7passed4.7min exit0; types/app/Storybook exit0.
+Root workspace library junction resolves root, not feature worktree. No backend,
+DB/credentials, manual-service restart or automatic cleanup. Branch/evidence retained.
