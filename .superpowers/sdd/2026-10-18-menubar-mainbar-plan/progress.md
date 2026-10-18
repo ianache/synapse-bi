@@ -118,3 +118,5 @@ RED1failed to GREEN; full browser7/7 in4.4min including enlarged header exit0.
 Final gates: app/typecheck/Storybook and explicit browser-fixture tsc exit0 after fixes.
 Independent review complete, one fix pass complete, no critical/important left;
 one cosmetic minor deferred as above. No second review, merge, push or cleanup.
+Delivery commitaf5843c; final working tree clean. Committed-range whitespace check
+exit2 confirms exactly the3documented EOF lines (reviewer had reported exit1).

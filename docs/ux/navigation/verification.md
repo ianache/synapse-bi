@@ -102,7 +102,7 @@ los dos hallazgos funcionales se cierran con sus regresiones RED→GREEN y suite
 Menor diferido: líneas vacías finales en `playwright.navigation.config.ts`,
 `tests/navigation/fixtures.ts` y `tests/navigation/navigation.spec.ts`.
 El `git diff --check` del árbol de trabajo pasó; la comprobación del rango de commits
-señala esas tres líneas (exit1). No se presenta el rango como libre de advertencias.
+señala esas tres líneas (exit2 en la comprobación final). No se presenta el rango como libre de advertencias.
 
 El revisor comprobó en Chromium la prioridad del modal de negocio al redimensionar
 con drawer abierto. No certificó equivalencia visual exacta (falló la descarga de
