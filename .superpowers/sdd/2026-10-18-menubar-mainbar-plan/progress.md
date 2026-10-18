@@ -10,7 +10,7 @@ No secrets, databases or sibling ledgers copied. No services restarted.
 - [x] T2 mobile drawer / focus lifecycle
 - [x] T3 Mainbar / structured breadcrumbs
 - [x] T4 shell / layouts / preserved journeys
-- [ ] T5 Storybook / component kit
+- [x] T5 Storybook / component kit
 - [ ] T6 browser / visual / full verification / independent review
 
 |Producer → consumer|Interface|Finding|
@@ -67,3 +67,9 @@ page navigation timer. No production workaround for a test-only browser limitati
 Task 4: complete (base5cdff39; pages/templates/shell/Menubar92passed26files450.42s,
 typecheck exit0; extra application build140modules12.83s exit0 with4WOFF2).
 Task5 brief read; existing Storybook staticDirs already serves app/public licenses.
+Task5 BASEd465645: RED2failed suites11.15s, missing stories/NavigationPreview as planned.
+Stories exercise public organism exports; shared demo fixtures stay in the existing
+library showcase module, not in application/domain code. No extra public component API.
+Task 5: complete (based465645; preview/story contracts3passed2files22.99s;
+typecheck exit0; build-storybook exit0,165modules,4WOFF2 and license in distribution).
+Task6 brief read; isolated Vite5197, fixture-only API interception, no backend or DB.
