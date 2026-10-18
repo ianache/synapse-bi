@@ -7,7 +7,7 @@ No secrets, databases or sibling ledgers copied. No services restarted.
 ## Pre-flight / todo
 
 - [x] T1 Menubar / contracts / local fonts
-- [ ] T2 mobile drawer / focus lifecycle
+- [x] T2 mobile drawer / focus lifecycle
 - [ ] T3 Mainbar / structured breadcrumbs
 - [ ] T4 shell / layouts / preserved journeys
 - [ ] T5 Storybook / component kit
@@ -37,3 +37,10 @@ Task1 BASE6a04a1e, brief read. RED missing ./Menubar import (expected planned ab
 Task 1: complete (base6a04a1e; Menubar9 + contracts1 =10passed76.28s; typecheck exit0).
 Font files moved inside worktree only; old import is a compatibility shim. UI not integrated yet.
 Task2: brief read; drawer focus/lifecycle tests next. No legacy Sidebar/TopBar changes.
+Task2 BASE513ac0d: RED4failed/1passed20.62s. Strengthened vacuous cleanup case
+to require hidden scroll while open; separate RED StrictMode expected hidden, got clip11.87s.
+Ruling: native dialog top-layer for drawer — existing business Modal already uses it;
+unit shims cover missing jsdom native methods, browser proves native behavior in T6 —
+cost if wrong: browser-specific lifecycle needs adjustment, no backend impact.
+Task 2: complete (base513ac0d; Menubar/drawer/contracts15passed90.07s; typecheck exit0).
+Task3 brief read; Mainbar contracts match shared types; RED next.
