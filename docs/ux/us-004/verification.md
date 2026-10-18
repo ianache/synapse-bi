@@ -4,6 +4,30 @@ Fecha: 2026-10-17. Rama `feat/us-004-model-versions`, worktree
 `.worktrees/us-004-model-versions`. Plan y API-004/DM-004 aprobados por el usuario
 en esta sesión. No implica aceptación visual ni cierre de la historia madre.
 
+## Integración local autorizada
+
+El usuario eligió la opción 1: fusionar localmente con `master`. Se integró por
+avance rápido hasta `88bcad2`, sin conflictos, push ni reinicio de servicios.
+Los 41 archivos de base coincidían con `282457b`; se incorporaron primero mediante
+ese commit existente, sin crear un commit con cambios ajenos. Los nueve archivos
+restantes conservaron su contenido, comprobado con hashes antes/después; los
+ledgers de US-002/US-003 y los artefactos sin seguimiento siguen sin confirmar.
+
+Verificación nueva desde el directorio principal sobre `master` integrado:
+
+- Backend completo con laboratorio PostgreSQL: **187 aprobadas**, ninguna omitida
+  (122.18s); credencial leída desde el archivo original autorizado, sin mostrarla
+  ni copiarla. Bases SQLite temporales separadas de la base manual.
+- Frontend completo: **97 aprobadas / 40 archivos** (361.74s).
+- Typecheck y build: exit0; compilación de 132 módulos (6.11s).
+- Navegador US-004: **5 aprobadas** (1.8m), servidores temporales API8015/UI5196
+  y SQLite nueva; servidores de prueba detenidos al finalizar.
+- `git diff --check`: sin errores. API8006 y UI5186 respondieron HTTP200.
+
+Se conservan rama, worktree, junctions y evidencia visual original. No se reinició
+la aplicación principal ni se solicitó migrar su base manual como parte de esta
+fusión. La integración no equivale a aceptación visual/funcional humana.
+
 ## Evidencia ejecutada
 
 - Backend: suite completa **187passed, ninguna omitida** con PostgreSQL habilitado
@@ -115,6 +139,7 @@ de fórmulas/SQL, lectura de filas de negocio ni escritura Gold. Roles reales po
 tenant/dominio y retención aprobada siguen siendo gates productivos.
 Revisión independiente finalizada: [hallazgos y correcciones verificadas](code-review.md).
 Tres regresiones de recuperación RED→GREEN y paginación SQLite RED→GREEN;
-suite completa verde después de la única pasada de correcciones. No se autoriza
-merge/push automático. Implementación y verificación técnica de la primera entrega
-completadas; tu aceptación visual/funcional y la integración siguen pendientes.
+suite completa verde después de la única pasada de correcciones. Integración local
+realizada tras autorización explícita (opción 1); push no autorizado. Implementación,
+verificación técnica e integración de la primera entrega completadas; la aceptación
+visual/funcional humana sigue pendiente.

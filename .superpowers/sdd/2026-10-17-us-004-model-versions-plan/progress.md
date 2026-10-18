@@ -117,3 +117,22 @@ HEAD lacks approved Stitch fixes — cost if wrong: extra baseline commit, no pa
 - Handoff final: pendientes anteriores de laboratorio ejecutados tras autorización;
   aceptación visual/funcional pendiente del usuario. Historia madre US004 no cerrada:
   publicación, SemVer publicado, roles reales, retención y US005 siguen fuera.
+
+## Integración local — autorización posterior del usuario
+
+- Usuario eligió opción1: fusionar localmente con master. Esta autorización
+  sustituye sólo el gate de integración; no autoriza push, limpieza o despliegue.
+- Master inicial ef910f3, rama funcional88bcad2 limpia. Los41 archivos de base
+  coincidían con282457b y el índice estaba vacío. Se prepararon exclusivamente
+  esas rutas y se verificó igualdad del índice con282457b; avance rápido primero
+  a282457b y después a88bcad2. Sin conflictos, sin stash/reset, sin nuevos commits
+  que capturen trabajo ajeno. Hashes antes/después preservan los9 archivos restantes.
+- Nueva verificación desde master integrado: backend187passed/0skipped122.18s
+  con BI_TEST_POSTGRES=true y credencial original autorizada sin mostrar/copiar;
+  frontend97passed/40files361.74s; typecheck/build exit0 (132modules6.11s);
+  navegador modelos5passed1.8m en API8015/UI5196 y SQLiteUUID nueva.
+- API8006 y UI5186 HTTP200; sin reinicios de servicios principales, migración de
+  base manual, reinicio PostgreSQL ni escrituras Gold. Servidores de prueba cerrados.
+- Ruling: conservar rama/worktree/junctions y capturas por restricción del plan;
+  cost if wrong: espacio local retenido, ninguna evidencia o dependencia eliminada.
+  No push. Aceptación visual/funcional humana y alcance posterior siguen pendientes.
