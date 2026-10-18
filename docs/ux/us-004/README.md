@@ -1,6 +1,9 @@
 # US-004 — Pantallas Stitch de primera entrega
 
 Fecha: 2026-10-17. Estado: **prototipos desktop generados; revisión visual pendiente**.
+Actualización de ejecución: plan y contratos aprobados por el usuario. Primera
+implementación en rama aislada; [resultados, diferencias visuales y prueba manual](verification.md).
+Los apartados siguientes conservan el registro histórico previo a la implementación.
 El usuario pidió avanzar con pantallas en Stitch. Esto autoriza esta generación,
 no demuestra aprobación íntegra de la especificación, contratos, plan o ejecución.
 
