@@ -43,6 +43,7 @@ it('backdrop and ordinary navigation close, modified navigation does not', async
   render(<Harness/>)
   const open = () => user.click(screen.getByRole('button', {name:'Abrir menú'}))
   await open()
+  document.addEventListener('click', event => event.preventDefault(), {once:true})
   fireEvent.click(screen.getByRole('link', {name: 'Inicio'}), {ctrlKey: true})
   expect(screen.getByRole('dialog')).toBeInTheDocument()
   await user.click(screen.getByRole('link', {name:'Inicio'}))

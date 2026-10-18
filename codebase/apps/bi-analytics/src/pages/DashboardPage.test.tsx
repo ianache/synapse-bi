@@ -4,6 +4,12 @@ import { DashboardPage } from './DashboardPage'
 import { createMockSemanticAdapter } from '../adapters/mockSemanticAdapter'
 
 describe('DashboardPage', () => {
+  it('uses the application navigation on the legacy dashboard route', () => {
+    window.history.pushState({},'', '/dashboard')
+    render(<DashboardPage adapter={createMockSemanticAdapter()}/>)
+    expect(screen.getByRole('link',{name:'Modelos semánticos'})).toHaveAttribute('href','/modelos-semanticos')
+    expect(screen.getByRole('link',{name:'Dashboards'})).toHaveAttribute('aria-current','page')
+  })
   afterEach(cleanup)
   it('renders dashboard content after loading', async () => {
     render(<DashboardPage adapter={createMockSemanticAdapter()} />)

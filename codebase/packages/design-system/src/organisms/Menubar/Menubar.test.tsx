@@ -41,7 +41,10 @@ describe('Menubar', () => {
   it.each([{ctrlKey: true}, {metaKey: true}, {shiftKey: true}, {altKey: true}, {button: 1}])('preserves native modified navigation %j', modifiers => {
     const onNavigate = vi.fn()
     render(<Menubar {...props} onNavigate={onNavigate}/>)
+    let preventedByComponent = true
+    document.addEventListener('click', event => {preventedByComponent = event.defaultPrevented; event.preventDefault()}, {once: true})
     fireEvent.click(screen.getByRole('link', {name: 'Inicio'}), modifiers)
+    expect(preventedByComponent).toBe(false)
     expect(onNavigate).not.toHaveBeenCalled()
   })
   it('does not fabricate a selection or organization when absent', () => {

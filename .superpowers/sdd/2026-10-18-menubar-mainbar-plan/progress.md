@@ -9,7 +9,7 @@ No secrets, databases or sibling ledgers copied. No services restarted.
 - [x] T1 Menubar / contracts / local fonts
 - [x] T2 mobile drawer / focus lifecycle
 - [x] T3 Mainbar / structured breadcrumbs
-- [ ] T4 shell / layouts / preserved journeys
+- [x] T4 shell / layouts / preserved journeys
 - [ ] T5 Storybook / component kit
 - [ ] T6 browser / visual / full verification / independent review
 
@@ -48,3 +48,22 @@ Task3 BASE5734bf1: RED missing ./Mainbar (planned absence)15.24s; implementing s
 Task 3: complete (base5734bf1; Mainbar5/contracts1=6passed16.18s; typecheck exit0).
 Task4 brief read; application workspace package junction verified points into this
 worktree, not master. No application code changed before shell regression tests.
+Task4 BASE5cdff39: RED10failed/4passed47.70s (shell/layout absent); extra legacy
+DashboardPage navigation RED1failed27.09s before adapting it.
+Ruling: /dashboard uses application SynapseShell, generic DashboardLayout remains
+backward-compatible and composes organisms — existing demo supplied only Overview,
+so generic config alone cannot provide suite navigation — cost if wrong: one
+layout wrapper change, existing query/filter behavior covered by its unchanged tests.
+Ruling: legacy bar classes retained unused instead of broad CSS deletion —
+new prefixed classes isolate bars and shared layout overrides only root grid/focus —
+cost if wrong: dead CSS retained; inverse-order browser checks in T6 detect leakage.
+Integration first GREEN attempt19passed/1failed: ModelsChrome explicit active=models
+with default rootURL lost active marker. Root cause getShellNavigation unconditionally
+overrode active with home for '/'; previous shell only did so for explore. Restricted
+root exception to explore in nav and breadcrumb. Existing failing regression retained.
+Modified-click tests now observe defaultPrevented after React then stop native jsdom
+navigation at document bubble; preserves the contract without jsdom's unsupported
+page navigation timer. No production workaround for a test-only browser limitation.
+Task 4: complete (base5cdff39; pages/templates/shell/Menubar92passed26files450.42s,
+typecheck exit0; extra application build140modules12.83s exit0 with4WOFF2).
+Task5 brief read; existing Storybook staticDirs already serves app/public licenses.

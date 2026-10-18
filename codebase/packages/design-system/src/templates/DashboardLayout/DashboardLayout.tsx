@@ -1,7 +1,24 @@
-import type { ReactNode } from 'react'
-import { Sidebar } from '../../organisms/Sidebar/Sidebar'
-import { TopBar } from '../../organisms/TopBar/TopBar'
+import {useState, type ReactNode} from 'react'
+import {Menubar} from '../../organisms/Menubar/Menubar'
+import {Mainbar} from '../../organisms/Mainbar/Mainbar'
+import type {MainbarProps} from '../../organisms/navigation/types'
+import './layout.css'
 
-export function DashboardLayout({ navigation, onNavigate, children }: { navigation: { label: string; href: string }[]; onNavigate?: (href: string) => void; children: ReactNode }) {
-  return <div className="dashboard-layout" style={{ background: 'var(--bi-color-bg)', color: 'var(--bi-color-text)' }}><Sidebar><nav aria-label="Main navigation">{navigation.map((item) => <a key={item.href} href={item.href} onClick={(event) => { if (onNavigate) { event.preventDefault(); onNavigate(item.href) } }} style={{ display: 'block', padding: '0.5rem' }}>{item.label}</a>)}</nav></Sidebar><main><TopBar><h1>BI Analytics</h1></TopBar><div style={{ padding: '1.5rem' }}>{children}</div></main></div>
+export function DashboardLayout({navigation, onNavigate, children, mainbar, activeHref}: {
+  navigation: {label: string; href: string}[]; onNavigate?: (href: string) => void; children: ReactNode;
+  mainbar?: Pick<MainbarProps,'breadcrumbs'|'actions'|'profile'>; activeHref?: string
+}) {
+  const [mobileOpen, setMobileOpen] = useState(false)
+  return <div className="dashboard-layout bi-root bi-navigation-layout bi-shell-layout">
+    <Menubar id="dashboard-navigation" brand={{label:'Synapse BI',subtitle:'Semantic Intelligence',badge:'Enterprise',href:'/'}}
+      groups={[{id:'general',label:'General',items:navigation.map(item => ({...item,id:item.href}))}]}
+      activeItemId={activeHref} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)}
+      onNavigate={onNavigate}/>
+    <div className="bi-shell-body">
+      <Mainbar breadcrumbs={mainbar?.breadcrumbs ?? [{id:'dashboard',label:'BI Analytics'}]} actions={mainbar?.actions}
+        profile={mainbar?.profile} menubarId="dashboard-navigation" mobileMenuOpen={mobileOpen}
+        onMobileMenuToggle={() => setMobileOpen(value => !value)} onNavigate={onNavigate}/>
+      <main className="bi-dashboard-content">{children}</main>
+    </div>
+  </div>
 }

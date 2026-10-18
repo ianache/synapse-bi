@@ -25,7 +25,7 @@ it('keeps the models navigation grouped as Stitch governance without exposing fa
   render(<SynapseShell active="models" breadcrumb="Modelos semánticos"><p>Contenido</p></SynapseShell>)
   const nav = within(screen.getByRole('navigation', {name: 'Navegación principal'}))
   expect(nav.getByText('General')).toBeInTheDocument()
-  expect(nav.getByText('Gobernanza semántica')).toBeInTheDocument()
+  expect(nav.getByText('Gobernanza & Semántica')).toBeInTheDocument()
   expect(nav.getByRole('link', {name: 'Modelos semánticos'})).toHaveAttribute('aria-current', 'page')
   expect(screen.getByRole('button', {name: 'Configuración · no disponible'})).toBeDisabled()
   expect(screen.queryByRole('button', {name: 'Exportar'})).not.toBeInTheDocument()
