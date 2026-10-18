@@ -1,9 +1,9 @@
 # Menubar y Mainbar reutilizables — diseño
 
-Fecha: 2026-10-18. Estado: **REQUIRES_REVIEW** de esta especificación escrita.
-El usuario confirmó el diseño conversacional: Mainbar de una fila, 64 px en
-escritorio y sin búsqueda. Esta confirmación no se atribuye como aprobación de
-este documento, del futuro plan ni como evidencia de implementación.
+Fecha: 2026-10-18. Especificación escrita **aprobada por el usuario** mediante
+«conforme» después de su entrega (commit `043010e`). Previamente confirmó Mainbar
+de una fila, 64 px en escritorio y sin búsqueda. La aprobación de esta especificación
+no se atribuye al futuro plan ni como evidencia de implementación.
 
 ## 1. Objetivo y límites
 
