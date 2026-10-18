@@ -8,7 +8,7 @@ No secrets, databases or sibling ledgers copied. No services restarted.
 
 - [x] T1 Menubar / contracts / local fonts
 - [x] T2 mobile drawer / focus lifecycle
-- [ ] T3 Mainbar / structured breadcrumbs
+- [x] T3 Mainbar / structured breadcrumbs
 - [ ] T4 shell / layouts / preserved journeys
 - [ ] T5 Storybook / component kit
 - [ ] T6 browser / visual / full verification / independent review
@@ -44,3 +44,7 @@ unit shims cover missing jsdom native methods, browser proves native behavior in
 cost if wrong: browser-specific lifecycle needs adjustment, no backend impact.
 Task 2: complete (base513ac0d; Menubar/drawer/contracts15passed90.07s; typecheck exit0).
 Task3 brief read; Mainbar contracts match shared types; RED next.
+Task3 BASE5734bf1: RED missing ./Mainbar (planned absence)15.24s; implementing single-row header.
+Task 3: complete (base5734bf1; Mainbar5/contracts1=6passed16.18s; typecheck exit0).
+Task4 brief read; application workspace package junction verified points into this
+worktree, not master. No application code changed before shell regression tests.
