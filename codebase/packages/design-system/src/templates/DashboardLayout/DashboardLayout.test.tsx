@@ -5,6 +5,24 @@ import { DashboardLayout } from './DashboardLayout'
 
 describe('DashboardLayout', () => {
   afterEach(cleanup)
+  it.each(['overview','#overview','?tab=overview','./overview','../overview'])('preserves ordinary internal callback destinations: %s', href => {
+    const onNavigate=vi.fn()
+    render(<DashboardLayout navigation={[{label:'Overview',href}]} onNavigate={onNavigate}><h1>Dashboard</h1></DashboardLayout>)
+    let preventedByComponent=false
+    document.addEventListener('click',event=>{preventedByComponent=event.defaultPrevented;event.preventDefault()},{once:true})
+    fireEvent.click(screen.getByRole('link',{name:'Overview'}))
+    expect(onNavigate).toHaveBeenCalledWith(href)
+    expect(preventedByComponent).toBe(true)
+  })
+  it.each(['https://example.test/overview','//example.test/overview','mailto:help@example.test'])('retains native external destinations: %s', href=>{
+    const onNavigate=vi.fn()
+    render(<DashboardLayout navigation={[{label:'Overview',href}]} onNavigate={onNavigate}><h1>Dashboard</h1></DashboardLayout>)
+    let preventedByComponent=true
+    document.addEventListener('click',event=>{preventedByComponent=event.defaultPrevented;event.preventDefault()},{once:true})
+    fireEvent.click(screen.getByRole('link',{name:'Overview'}))
+    expect(onNavigate).not.toHaveBeenCalled()
+    expect(preventedByComponent).toBe(false)
+  })
   it('supports keyboard-accessible navigation', async () => {
     const user = userEvent.setup()
     const onNavigate = vi.fn()

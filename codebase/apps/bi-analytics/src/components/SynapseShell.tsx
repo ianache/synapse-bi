@@ -1,4 +1,4 @@
-import {useEffect, useState, type ReactNode} from 'react'
+import {useEffect, useLayoutEffect, useRef, useState, type ReactNode} from 'react'
 import {Mainbar, Menubar, type BreadcrumbItem} from '@bi-analytics/design-system'
 import {getShellNavigation, shellActions, shellUtilities, type ShellSection} from './shellNavigation'
 
@@ -17,6 +17,21 @@ export function SynapseShell({children, active, breadcrumb, breadcrumbs}: {
   children: ReactNode; active: ShellSection; breadcrumb: string; breadcrumbs?: BreadcrumbItem[]
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const bodyRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const body = bodyRef.current
+    const header = body?.querySelector<HTMLElement>('.bi-mainbar')
+    if (!body || !header) return
+    const measure = () => body.style.setProperty('--bi-mainbar-height', Math.ceil(header.getBoundingClientRect().height) + 'px')
+    measure()
+    if (typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(measure)
+      observer.observe(header)
+      return () => observer.disconnect()
+    }
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
   const pathname = window.location.pathname
   useEffect(() => setMobileOpen(false), [pathname])
   const navigation = getShellNavigation(active, pathname)
@@ -37,7 +52,7 @@ export function SynapseShell({children, active, breadcrumb, breadcrumbs}: {
       quickAction={{id:'query',label:'Nueva consulta SQL/BI',icon:'plus',unavailableReason:'Motor de consultas no implementado'}}
       utilityActions={shellUtilities}
       organization={demo ? {name:'Espacio de demostración',description:'Sandbox · organización no configurada'} : undefined}/>
-    <div className="synapse-body bi-shell-body">
+    <div ref={bodyRef} className="synapse-body bi-shell-body">
       <Mainbar breadcrumbs={trail} actions={shellActions} menubarId="synapse-navigation" mobileMenuOpen={mobileOpen}
         onMobileMenuToggle={() => setMobileOpen(value => !value)} onNavigate={navigate}/>
       <main id="workspace" tabIndex={-1} className="synapse-main">

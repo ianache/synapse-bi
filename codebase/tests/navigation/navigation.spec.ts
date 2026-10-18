@@ -103,6 +103,20 @@ test('login_has_no_operational_bars',async({page})=>{
  await page.goto('/login');await settled(page)
  await expect(page.locator('.bi-mainbar,.bi-menubar')).toHaveCount(0)
 })
+test('skip_link_clearance_tracks_growing_header',async({page})=>{
+ await page.goto('/modelos-semanticos/model/borradores/draft/comparar');await settled(page)
+ for(const enlarged of [false,true]){
+   if(enlarged) await page.addStyleTag({content:'.bi-navigation-no-profile{font-size:36px}'})
+   await page.evaluate(()=>window.scrollTo(0,400))
+   await page.getByRole('link',{name:'Saltar al contenido'}).focus()
+   await page.keyboard.press('Enter')
+   await expect(page.locator('#workspace')).toBeFocused()
+   await expect.poll(async()=>page.evaluate(()=>{
+     const main=document.querySelector('#workspace')!, header=document.querySelector('.bi-mainbar')!
+     return main.getBoundingClientRect().top>=header.getBoundingClientRect().bottom-1
+   })).toBe(true)
+ }
+})
 test('mobile_families_and_component_kit_reuse_the_organisms',async({page})=>{
  await page.setViewportSize({width:390,height:844})
  for(const [index,[,path]] of families.entries()){

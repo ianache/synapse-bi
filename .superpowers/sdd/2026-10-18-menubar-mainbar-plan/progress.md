@@ -11,7 +11,7 @@ No secrets, databases or sibling ledgers copied. No services restarted.
 - [x] T3 Mainbar / structured breadcrumbs
 - [x] T4 shell / layouts / preserved journeys
 - [x] T5 Storybook / component kit
-- [ ] T6 browser / visual / full verification / independent review
+- [x] T6 browser / visual / full verification / independent review
 
 |Producer → consumer|Interface|Finding|
 |---|---|---|
@@ -92,3 +92,29 @@ wrong: retained disk usage; no user files are removed.
 Task 6: complete (base7aa88cc; full frontend130passed45files941.07s exit0;
 browser6passed4.5m; app/types/Storybook and test-specific tsc exit0; diffcheck exit0).
 Independent whole-branch review gate follows; no merge or completion handoff yet.
+Final review: independent fresh-context reviewer, base6a04a1e..a9f2ce9, read-only.
+No critical findings. Important: DashboardLayout relative/fragment callbacks lost.
+Regraded sticky-header skip-target obstruction from Minor to Important: keyboard
+navigation must reveal its destination, including enlarged header; fix in same pass.
+Final: minor (deferred): extra blank EOF lines in navigation config/fixtures/spec;
+working-tree diffcheck passed but committed-range diffcheck reports these3lines.
+Final: Ruling: exact visual equivalence not certified by reviewer (reference download
+failed there) — executor compared the exact reference assets and route captures,
+report retains visual/pixel-perfect limitation — cost if wrong: residual visual differences.
+Final: Ruling: reviewer did not repeat all runtime suites — executor owns fresh
+full/browser/build gates — cost if wrong: those gates have no independent rerun.
+Final: Ruling: Safari/Firefox/manual screen reader remain unverified — report limits
+evidence to Chrome Windows and axe — cost if wrong: browser/assistive-specific issues.
+Final: Ruling: backend/auth persistence/DB not reviewed — no backend changes and
+fixture-only navigation accepted scope — cost if wrong: no new backend integration assurance.
+Final fix pass: relative callbacks RED5failed/5passed37.68s; skip-link clearance
+RED1failed47.4s. Minimal classification and measured scroll-margin fixes applied.
+Final full regression uses threads with one worker (same45files/test isolation),
+avoiding repeated cold fork startup; prior complete fork run130/130 remains recorded.
+Final: fixed relative/fragment callback compatibility — DashboardLayout10cases,
+5RED failures to GREEN; complete suite138/138 in45files680.28s exit0.
+Final: fixed obscured skip destination — browser skip_link_clearance_tracks_growing_header
+RED1failed to GREEN; full browser7/7 in4.4min including enlarged header exit0.
+Final gates: app/typecheck/Storybook and explicit browser-fixture tsc exit0 after fixes.
+Independent review complete, one fix pass complete, no critical/important left;
+one cosmetic minor deferred as above. No second review, merge, push or cleanup.

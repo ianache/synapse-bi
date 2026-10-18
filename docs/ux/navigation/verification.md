@@ -76,9 +76,39 @@ runtime eval y chunk de documentación >500kB de Storybook; no son fallos de com
 
 Cobertura móvil ampliada y kit: suite completa de navegador6/6,4.5min.
 Tipos de fixtures/config/pruebas Playwright: `tsc --noEmit` explícito, exit0.
-Regresión completa:130/130 pruebas,45/45 archivos,941.07s, exit0.
+Regresión completa previa a revisión:130/130 pruebas,45/45 archivos,941.07s, exit0.
 `git diff --check`: exit0. Advertencia adicional de Node26 sobre localStorage
-experimental sin archivo; los tests de rutas pasan. Revisión independiente pendiente.
+experimental sin archivo; los tests de rutas pasan. Revisión independiente detallada a continuación.
+
+## Revisión independiente y correcciones finales
+
+Revisión única read-only de toda la rama `6a04a1e..a9f2ce9`: sin críticos;
+dictamen inicial «con correcciones». Detectó pérdida del callback de DashboardLayout
+para destinos relativos/fragmentos, y obstrucción del destino de salto por la cabecera.
+Este último se reclasificó como importante por su impacto en navegación por teclado.
+Regresiones RED:5 destinos internos fallidos/5 casos aprobados en DashboardLayout;
+prueba real de enlace de salto fallida. Ajustes: clasificar destinos relativos,
+queries y fragmentos como internos manteniendo esquemas externos nativos; medir
+la altura real de la cabecera con ResizeObserver para el margen de scroll del contenido.
+Verificación final:138/138 pruebas frontend en45/45 archivos,680.28s, exit0;
+7/7 pruebas de navegador,4.4min, exit0. DashboardLayout10casos aprobados;
+enlace de salto aprobado con altura normal y ampliada. La suite final añadió
+`--pool=threads` al mismo comando, manteniendo un worker y aislamiento por archivo.
+Tipos, tipos de fixtures/pruebas de navegador, aplicación142módulos y
+Storybook165módulos volvieron a terminar exit0 tras las correcciones.
+No se solicita segunda revisión ni se declara nueva aprobación independiente;
+los dos hallazgos funcionales se cierran con sus regresiones RED→GREEN y suite completa.
+
+Menor diferido: líneas vacías finales en `playwright.navigation.config.ts`,
+`tests/navigation/fixtures.ts` y `tests/navigation/navigation.spec.ts`.
+El `git diff --check` del árbol de trabajo pasó; la comprobación del rango de commits
+señala esas tres líneas (exit1). No se presenta el rango como libre de advertencias.
+
+El revisor comprobó en Chromium la prioridad del modal de negocio al redimensionar
+con drawer abierto. No certificó equivalencia visual exacta (falló la descarga de
+referencia en su entorno), no repitió suites completas y no verificó Safari/Firefox,
+lector de pantalla manual ni backend. La evidencia del implementador y esos límites
+se mantienen separados; no se declara aceptación humana.
 
 ## Límites y entrega
 
