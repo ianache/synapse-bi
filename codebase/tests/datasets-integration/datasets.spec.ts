@@ -11,7 +11,7 @@ async function auth(request: APIRequestContext, persona = 'data-admin') {
 async function observedSource(request: APIRequestContext) {
   const headers = await auth(request)
   // Runtime fixture only; no traces, screenshots or console for credentials.
-  const password = readFileSync(path.resolve('case-study/.docker-secrets/reader_global_password.txt'), 'utf8').trim()
+  const password = readFileSync(process.env.BI_LAB_READER_PASSWORD_FILE ?? path.resolve('case-study/.docker-secrets/reader_global_password.txt'), 'utf8').trim()
   const connection = { host: '127.0.0.1', port: 55432, database: 'bi_analytics', username: 'bi_reader_global', tlsMode: 'disable', laboratory: true, schemas: ['gold'], password }
   const probe = await request.post('/api/v1/sources/test', { headers, data: connection })
   expect(probe.status()).toBe(200)

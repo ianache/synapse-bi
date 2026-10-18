@@ -108,7 +108,7 @@ def test_denies_unapproved_destinations_and_unsafe_inputs(client, admin):
 
 @pytest.mark.skipif(os.getenv("BI_TEST_POSTGRES") != "true", reason="Explicit local PostgreSQL integration opt-in")
 def test_real_postgres_observation(client, admin):
-    password_path = Path(__file__).parents[2] / "case-study/.docker-secrets/reader_global_password.txt"
+    password_path = Path(os.getenv("BI_LAB_READER_PASSWORD_FILE", str(Path(__file__).parents[2] / "case-study/.docker-secrets/reader_global_password.txt")))
     data = {**body(), "password": password_path.read_text().strip()}
     tested = client.post("/api/v1/sources/test", json=data, headers=admin)
     assert tested.status_code == 200

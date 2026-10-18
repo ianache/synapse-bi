@@ -4,7 +4,7 @@ import { readFileSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
 
 // Runtime fixture only. Never included in traces, screenshots or console output.
-const password = readFileSync(path.resolve('case-study/.docker-secrets/reader_global_password.txt'), 'utf8').trim()
+const password = readFileSync(process.env.BI_LAB_READER_PASSWORD_FILE ?? path.resolve('case-study/.docker-secrets/reader_global_password.txt'), 'utf8').trim()
 const artifacts = path.resolve('test-results/source-screens')
 
 test.beforeEach(async ({ page }) => {
