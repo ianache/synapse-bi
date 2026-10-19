@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../app/App'
@@ -19,6 +19,28 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('KPI analyst journey', () => {
+  it('shows unavailable lineage and dimensions instead of inventing provenance', async () => {
+    const prototype = HTMLDialogElement.prototype
+    const originals = new Map(['showModal', 'close'].map(key => [key, Object.getOwnPropertyDescriptor(prototype, key)]))
+    Object.defineProperty(prototype, 'showModal', {configurable: true, value() {this.setAttribute('open', '')}})
+    Object.defineProperty(prototype, 'close', {configurable: true, value() {this.removeAttribute('open')}})
+    try {
+      render(<App />)
+      const card = screen.getByRole('heading', {name: 'Ingresos netos'}).closest('article')!
+      await userEvent.click(within(card).getByRole('button', {name: 'Ver detalle'}))
+      const dialog = screen.getByRole('dialog', {name: 'Detalle de Ingresos netos'})
+      expect(dialog).toHaveTextContent('Linaje no disponible')
+      expect(dialog).not.toHaveTextContent('Fuente de ventas → Dataset preparado')
+      expect(dialog).not.toHaveTextContent('Fecha, producto y canal (ejemplo)')
+    } finally {
+      cleanup()
+      for (const [key, descriptor] of originals) {
+        if (descriptor) Object.defineProperty(prototype, key, descriptor)
+        else Reflect.deleteProperty(prototype, key)
+      }
+    }
+  })
+
   it('finds KPI by accented synonym and recovers from an empty result', async () => {
     const user = userEvent.setup()
     render(<App />)

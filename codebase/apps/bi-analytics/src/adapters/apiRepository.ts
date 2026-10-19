@@ -15,7 +15,15 @@ export interface QueryResult {
   unit: string
   status: 'success' | 'empty'
   rows: { dimension: string | null; value: string | null }[]
-  metadata: { dataMode: 'synthetic' | 'connected'; sourceUpdatedAt: string | null; queriedAt: string; quality: { status: string; score: number | null } }
+  metadata: {
+    dataMode: 'synthetic' | 'connected'
+    sourceUpdatedAt?: string | null
+    queriedAt: string
+    quality?: { status?: string; score?: number | null } | null
+    freshness?: { status?: string; policy?: string | null } | null
+    lineage?: PublishedKpi['lineage'] | null
+    lineageStatus?: 'available' | 'unavailable'
+  }
 }
 
 export interface QueryPeriod { startDate: string; endDate: string; channel?: string }

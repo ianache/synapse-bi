@@ -6,12 +6,16 @@ tags: [user-story, plataforma, serving, semantic]
 status: draft
 generated:
   by: "af-user-story-refiner/2.0"
-  at: "2026-10-16T01:22:23-05:00"
+  at: "2026-10-18T16:18:28-05:00"
 sources:
   - id: PRD-BI-ANALYTICS-V1.1
     resource: /intents/PRD.md
   - id: RCP-001
     resource: /knowledge-base/requirements/context-packs/RCP-001-bi-analytics-platform-v1-1.md
+  - id: API-001
+    resource: /knowledge-base/design/api-contracts/API-001-python-semantic-dashboard-api.md
+  - id: API-004
+    resource: /knowledge-base/design/api-contracts/API-004-semantic-model-drafts.md
 ---
 
 # US-005 — Resolver consulta semántica
@@ -54,17 +58,35 @@ Escenario: Consultar definición semántica
   Dado un modelo semántico publicado y una consulta permitida
   Cuando el consumidor solicita la consulta
   Entonces el resultado incluye metadatos de frescura, calidad y linaje
+  Y distingue explícitamente los metadatos evaluados de los no evaluados o no disponibles
 ```
 
-- **Regla / fuente:** PRD §14 FR-005; BRC-001 BR-009 requiere metadatos pero sus umbrales/respuestas por clase siguen propuestos.
+- **Regla / fuente:** PRD §14 FR-005; BRC-001 BR-009; respuesta humana a US-005-Q1 para laboratorio (2026-10-18). La política por clase para producción sigue pendiente.
+
+### AC-2 — No afirmar calidad, frescura o linaje no comprobados
+
+```gherkin
+Escenario: Consultar en el laboratorio con controles no evaluados o metadatos ausentes
+  Dado un KPI sintético explícitamente identificado como dato de demostración
+  Y una consulta autorizada
+  Cuando el consumidor solicita el resultado
+  Entonces la respuesta identifica calidad y frescura como no evaluadas cuando corresponda
+  Y marca explícitamente cualquier metadato ausente como no disponible
+  Y no inventa valores, umbrales ni certificaciones
+  Y no bloquea el resultado del laboratorio sólo por esos metadatos
+```
+
+- **Regla / fuente:** API-001 API-D03/API-D08; respuesta humana a US-005-Q1 para laboratorio. No aprueba la política global BRC-001 BR-009.
 
 ## 6. Casos negativos y límite
 
 | Caso | Comportamiento esperado | Fuente o pregunta |
 |---|---|---|
-| Calidad/frescura insuficiente | No establecer bloqueo o advertencia hasta aprobar política | US-005-Q1 |
-| Falta linaje | Comportamiento no definido | US-005-Q1 |
-| Tenant/permiso no resuelto | No permitir acceso cross-tenant; error concreto pendiente | BRC-001 BR-012; US-005-Q1 |
+| Calidad/frescura no evaluadas en laboratorio | Devolver el resultado permitido con estado `not_evaluated`; no afirmar certificación ni aplicar umbral no aprobado. | API-001 API-D08; decisión humana US-005-Q1, 2026-10-18 |
+| Falta un metadato, incluido linaje, en laboratorio | Identificarlo como no disponible, sin fabricarlo; no bloquear sólo por su ausencia en este alcance. | Decisión humana US-005-Q1, 2026-10-18 |
+| Scope insuficiente para un recurso visible | Denegar la consulta; no devolver datos. La API responde 403. | API-001; API-004 §3 |
+| Recurso de otro tenant u oculto | Denegar sin revelar su existencia. La API responde 404 genérico. | BRC-001 BR-012; API-001; API-004 §3 |
+| Uso de KPI/modelo no sintético antes de acordar workload y controles productivos | No tratar la demostración de laboratorio como autorización para consumo productivo. | US-005-Q2 |
 
 ## 7. Reglas de negocio aplicables
 
@@ -105,7 +127,18 @@ Escenario: Consultar definición semántica
 
 | ID | Pregunta | Responsable | Prioridad | Bloquea | Estado |
 |---|---|---|---|---|---|
-| US-005-Q1 | ¿Qué controles/umbrales bloquean, advierten o permiten consumo, y cuál es la semántica de error para metadatos ausentes y permisos no resueltos? | Producto / Seguridad / Data Governance | Alta | Sí | Abierta |
+| US-005-Q1 | Para laboratorio, ¿qué hacer con calidad/frescura no evaluadas, metadatos ausentes y permisos no resueltos? | Producto / Seguridad / Data Governance | Alta | No para laboratorio; sí para producción | Resuelta para laboratorio; decisión humana registrada abajo |
+| US-005-Q2 | ¿Cuál es el primer workload productivo y qué clases, controles, umbrales de calidad/frescura y objetivos de servicio se aprobarán para él? | Producto / Business Owner / Data Steward / Seguridad | Alta | Sí para producción | Abierta |
+
+### Decisión humana registrada para US-005-Q1
+
+El 2026-10-18, `human:ianache` aprobó la respuesta **sólo para el alcance de laboratorio**:
+
+- Se usan exclusivamente datos sintéticos de demostración, identificados como tales.
+- Calidad y frescura se exponen como `not_evaluated` si no fueron evaluadas; no se inventan umbrales ni se bloquea el resultado del laboratorio por ese motivo.
+- Todo metadato ausente, incluido linaje, se señala como no disponible; no se inventa ni impide por sí solo la consulta de laboratorio.
+- La autorización deniega por defecto: 403 por scope insuficiente en recursos visibles y 404 genérico para recursos ocultos o fuera del tenant; no se devuelven datos en ninguno de esos casos.
+- Esta decisión no aprueba BRC-001 BR-009 ni fija política de producción. Workload real, objetivos de servicio y umbrales por clase quedan en US-005-Q2.
 
 ## 13. Evidencia y trazabilidad
 
@@ -134,7 +167,7 @@ Evidencia compartida: `source_type: document`, `observed_at: 2026-10-16T01:22:23
 
 - [x] Actor/valor respaldados
 - [x] Fuente de criterio citada
-- [ ] Respuestas ante datos incompletos definidas
+- [x] Respuestas ante datos incompletos definidas para laboratorio
 - [ ] Preguntas bloqueantes cerradas
 - [x] Dependencias identificadas
 - [x] Términos vinculados
@@ -152,9 +185,10 @@ Evidencia compartida: `source_type: document`, `observed_at: 2026-10-16T01:22:23
 ## 17. Preparación y validación
 
 - **Estado:** CONDITIONAL
-- **Motivo:** comportamiento con calidad/freshness insuficiente, NFR y permisos aún sin aprobación.
-- **Bloqueos de entrega:** US-002–US-004, decisión de autorización y US-005-Q1.
+- **Motivo:** US-005-Q1 resuelta para laboratorio; workload real, umbrales por clase, objetivos de servicio y política productiva siguen pendientes en US-005-Q2.
+- **Bloqueos de entrega:** dependencias de publicación y dataset autorizados; US-005-Q2 bloquea la entrega productiva, no el laboratorio sintético acotado.
 - **Propuesta de división (si no es pequeña):** separar consulta base y política de confiabilidad al acordar workloads.
 - **Siguiente rol o Skill:** Producto / Seguridad / Data Governance.
-- **Decisión humana requerida:** acordar freshness, calidad, error, autorización y workload inicial.
+- **Decisión humana requerida:** aprobar el workload productivo inicial, sus controles/umbrales por clase y objetivos de servicio.
 - **Validación:** Pendiente · Responsable: Producto · Fecha: —
+- **Evidencia del incremento de laboratorio:** [implementación y prueba manual](/docs/ux/us-005/verification.md). La verificación técnica de US-005-Q1 no equivale a aceptación humana de la historia ni resuelve US-005-Q2.

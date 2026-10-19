@@ -22,8 +22,8 @@ class Kpi(DTO):
     category: str
     definition: str
     owner: str
-    freshness: str
-    quality: str
+    freshness: str = "No disponible"
+    quality: str = "No disponible"
     frequency: str
     formula: str
     unit: str
@@ -33,8 +33,18 @@ class Kpi(DTO):
     model_version: int
     status: Literal["published"] = "published"
     dimensions: list[str]
-    lineage: list[LineageNode]
+    lineage: list[LineageNode] = Field(default_factory=list)
     data_mode: Literal["synthetic", "connected"]
+
+    @field_validator("freshness", "quality", mode="before")
+    @classmethod
+    def unavailable_confidence(cls, value):
+        return "No disponible" if value is None or isinstance(value, str) and not value.strip() else value
+
+    @field_validator("lineage", mode="before")
+    @classmethod
+    def unavailable_lineage(cls, value):
+        return [] if value is None else value
 
 
 class KpiPage(DTO):

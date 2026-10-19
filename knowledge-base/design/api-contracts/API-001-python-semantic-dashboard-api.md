@@ -54,7 +54,7 @@ semántica de endpoints son propuestas de implementación del agente.
 | API-D05 | Sesión dev sólo con configuración explícita, loopback y origen permitido | Inferencia para probar sin un IdP; prohibida en production. |
 | API-D06 | Dashboard privado por defecto; compartidos visibles al mismo tenant; edición sólo del propietario con scope | Política mínima propuesta del agente para probar US-006/009. No constituye aprobación de una ACL empresarial. |
 | API-D07 | If-Match, idempotencia de creación y unicidad de widgets | Inferencia para proteger reintentos y escrituras concurrentes. |
-| API-D08 | Calidad/frescura sin evaluar; no inventar umbrales ni bloqueo | Vacío US-005-Q1. Se expone origen y fecha disponible sin afirmar certificación. |
+| API-D08 | En laboratorio, calidad/frescura no evaluadas se marcan `not_evaluated`; metadatos ausentes se identifican como no disponibles. No se inventan umbrales ni se bloquea sólo por esos faltantes. | Respuesta humana aprobada para US-005-Q1 el 2026-10-18, limitada al workload sintético de laboratorio. Umbrales y política productiva por clase siguen pendientes en US-005-Q2. |
 | API-D09 | Contrato v1; camelCase y errores uniformes | ADR-009 propuesto. Cambios incompatibles requieren nueva versión de API. |
 
 ## Recursos, DTO y ejemplos
@@ -90,12 +90,35 @@ ordenadas y hasta 366 días; agrupación channel/product sólo si el KPI la
 permite. La conversión agrega numeradores y denominadores, no promedia tasas.
 No se acepta SQL del cliente.
 
+### US-005-Q1 — Metadatos ausentes en el laboratorio
+
+La implementación de este incremento conserva el cálculo sintético y añade
+`metadata.lineageStatus: "available" | "unavailable"`. `metadata.lineage`
+sigue siendo una lista; sin linaje se devuelve `[]` y estado `unavailable`.
+En los documentos sintéticos del catálogo, linaje omitido o null se normaliza
+a lista vacía. Calidad/frescura omitidas, null o vacías se muestran como
+«No disponible»; el ejecutor sigue devolviendo sus controles como
+`not_evaluated`, sin score ni política evaluados.
+
+La UI muestra el valor aunque falten esos metadatos, junto con su disponibilidad;
+no completa linaje o dimensiones con ejemplos. El campo de disponibilidad es
+aditivo: consumidores anteriores pueden seguir leyendo `metadata.lineage`.
+La ausencia no equivale a calidad aprobada ni a autorización productiva.
+
 ## Errores, concurrencia e idempotencia
 
 - 401 autenticación, 403 permiso, 404 recurso inexistente/no visible.
+- Para consultas, primero se valida la identidad y se resuelve el KPI/version
+  dentro del tenant autorizado. Un identificador oculto/no existente devuelve
+  404 también cuando falta `queries:execute`; un KPI visible sin ese scope
+  devuelve 403. No se consultan hechos ni se registra una ejecución exitosa
+  antes de cumplir ambos controles.
 - 409 nombre/clave en conflicto; 412 versión obsoleta; 428 falta If-Match.
 - 422 input fuera de contrato; 503 dependencia no disponible.
-- Todos usan error.code/message/requestId y Cache-Control no-store.
+- Todos usan error.code/message/requestId y Cache-Control no-store. Por decisión
+  humana de US-005-Q1 (2026-10-18), 403 representa scope insuficiente sobre un
+  recurso visible; recurso oculto o fuera del tenant devuelve 404 genérico sin
+  revelar su existencia. En ambos casos se deniega antes de devolver datos.
 - POST dashboard admite Idempotency-Key por tenant/subject; misma clave y
   contenido reutiliza el recurso, contenido distinto devuelve 409.
 - PUT widget es único por tenant/dashboard/KPI. Con versión actual, repetir

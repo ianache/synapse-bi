@@ -9,15 +9,19 @@ import { LiveKpiValue } from '../components/LiveKpiValue'
 import './kpi-workspace.css'
 
 function KpiBadges({ kpi }: { kpi: PublishedKpi }) {
-  return <div className="kpi-badges"><Badge>{kpi.domain}</Badge><Badge tone="success">● Publicado</Badge><span className="kpi-quality"><Icon name="check" size={12} />Calidad · {kpi.quality}</span></div>
+  const quality = kpi.quality?.trim() || 'No disponible'
+  const showQualityMark = kpi.dataMode !== 'synthetic' && !/^(sin evaluar|not_evaluated|no disponible)$/i.test(quality)
+  return <div className="kpi-badges"><Badge>{kpi.domain}</Badge><Badge tone="success">● Publicado</Badge><span className="kpi-quality">{showQualityMark && <Icon name="check" size={12} />}Calidad · {quality}</span></div>
 }
 
 function KpiMetadata({ kpi }: { kpi: PublishedKpi }) {
-  return <dl className="kpi-metadata"><div><dt>Propietario</dt><dd>{kpi.owner}</dd></div><div><dt>Frescura del dato</dt><dd><span className="fresh-dot" />{kpi.freshness}</dd></div><div><dt>Frecuencia de cálculo</dt><dd>{kpi.frequency}</dd></div></dl>
+  const freshness = kpi.freshness?.trim() || 'No disponible'
+  const showFreshnessMark = kpi.dataMode !== 'synthetic' && !/^(sin evaluar|not_evaluated|no disponible)$/i.test(freshness)
+  return <dl className="kpi-metadata"><div><dt>Propietario</dt><dd>{kpi.owner}</dd></div><div><dt>Frescura del dato</dt><dd>{showFreshnessMark && <span className="fresh-dot" />}{freshness}</dd></div><div><dt>Frecuencia de cálculo</dt><dd>{kpi.frequency}</dd></div></dl>
 }
 
 function KpiDetails({ kpi, onClose }: { kpi: PublishedKpi; onClose: () => void }) {
-  return <Modal title={`Detalle de ${kpi.name}`} onClose={onClose}><div className="kpi-detail"><div className="kpi-section-heading"><h2>{kpi.name}</h2><Button variant="ghost" onClick={onClose} aria-label="Cerrar detalle">×</Button></div><KpiBadges kpi={kpi} /><p>{kpi.definition}</p><dl><dt>Fórmula</dt><dd>{kpi.formula}</dd><dt>Unidad</dt><dd>{kpi.unit}</dd><dt>Grano</dt><dd>{kpi.grain}</dd><dt>Dimensiones del modelo</dt><dd>{kpi.dimensions?.join(', ') ?? 'Fecha, producto y canal (ejemplo)'}</dd></dl><KpiMetadata kpi={kpi} /><h3>Lineage</h3><p className="kpi-lineage"><Icon name="layers" />{kpi.lineage?.map(node => node.label).join(' → ') ?? `Fuente de ventas → Dataset preparado → Modelo semántico → ${kpi.name}`}</p><p className="kpi-muted">{kpi.dataMode === 'synthetic' ? 'Modelo de desarrollo con datos sintéticos. Calidad y frescura sin evaluar.' : 'Consulta la definición y los metadatos del modelo antes de utilizar el KPI.'}</p><Button onClick={() => { onClose(); navigate(`/kpi/${kpi.id}/agregar`) }}><Icon name="plus" />Añadir al dashboard</Button></div></Modal>
+  return <Modal title={`Detalle de ${kpi.name}`} onClose={onClose}><div className="kpi-detail"><div className="kpi-section-heading"><h2>{kpi.name}</h2><Button variant="ghost" onClick={onClose} aria-label="Cerrar detalle">×</Button></div><KpiBadges kpi={kpi} /><p>{kpi.definition}</p><dl><dt>Fórmula</dt><dd>{kpi.formula}</dd><dt>Unidad</dt><dd>{kpi.unit}</dd><dt>Grano</dt><dd>{kpi.grain}</dd><dt>Dimensiones del modelo</dt><dd>{kpi.dimensions?.length ? kpi.dimensions.join(', ') : 'No disponible'}</dd></dl><KpiMetadata kpi={kpi} /><h3>Lineage</h3><p className="kpi-lineage"><Icon name="layers" />{kpi.lineage?.map(node => node.label).filter(label => label.trim()).join(' → ') || 'Linaje no disponible'}</p><p className="kpi-muted">{kpi.dataMode === 'synthetic' ? 'Modelo de desarrollo con datos sintéticos. Calidad y frescura sin evaluar.' : 'Consulta la definición y los metadatos del modelo antes de utilizar el KPI.'}</p><Button onClick={() => { onClose(); navigate(`/kpi/${kpi.id}/agregar`) }}><Icon name="plus" />Añadir al dashboard</Button></div></Modal>
 }
 
 function ExploreKpis({ onDetail, kpis, apiMode }: { onDetail: (kpi: PublishedKpi) => void; kpis: PublishedKpi[]; apiMode: boolean }) {

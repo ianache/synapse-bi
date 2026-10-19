@@ -15,6 +15,10 @@ def format_value(value: Decimal | None) -> str | None:
 
 def execute_query(database: Database, user: Principal, body: SemanticQuery, request_id: str) -> QueryResult:
     kpi = get_kpi(database, user, body.kpi_id, body.model_version)
+    # Resolve visibility within the authenticated tenant before returning a scope
+    # error. Hidden and nonexistent identifiers must remain indistinguishable.
+    if "queries:execute" not in user.scopes:
+        raise ApiError(403, "permission_denied", "No tienes permiso para realizar esta operación.")
     if body.group_by and body.group_by not in kpi.dimensions:
         raise ApiError(422, "unsupported_dimension", "La dimensión no está permitida por este KPI.")
     if kpi.data_mode != "synthetic":
@@ -53,4 +57,4 @@ def execute_query(database: Database, user: Principal, body: SemanticQuery, requ
             value = Decimal(row["converted"]) / Decimal(row["eligible"]) * 100 if row["eligible"] else None
         rows.append(QueryRow(dimension=row["dimension"], value=format_value(value)))
         latest = max(latest or row["newest"], row["newest"])
-    return QueryResult(kpi_id=kpi.id, model_id=kpi.model_id, model_version=kpi.model_version, unit=kpi.unit, status="success" if rows else "empty", rows=rows, metadata={"dataMode": kpi.data_mode, "sourceUpdatedAt": latest, "queriedAt": datetime.now(timezone.utc).isoformat(), "quality": {"status": "not_evaluated", "score": None}, "freshness": {"status": "not_evaluated", "policy": None}, "lineage": [node.model_dump(by_alias=True) for node in kpi.lineage], "startDate": body.start_date.isoformat(), "endDate": body.end_date.isoformat(), "groupBy": body.group_by, "nullReason": "undefined_denominator" if any(r.value is None for r in rows) else None})
+    return QueryResult(kpi_id=kpi.id, model_id=kpi.model_id, model_version=kpi.model_version, unit=kpi.unit, status="success" if rows else "empty", rows=rows, metadata={"dataMode": kpi.data_mode, "sourceUpdatedAt": latest, "queriedAt": datetime.now(timezone.utc).isoformat(), "quality": {"status": "not_evaluated", "score": None}, "freshness": {"status": "not_evaluated", "policy": None}, "lineage": [node.model_dump(by_alias=True) for node in kpi.lineage], "lineageStatus": "available" if kpi.lineage else "unavailable", "startDate": body.start_date.isoformat(), "endDate": body.end_date.isoformat(), "groupBy": body.group_by, "nullReason": "undefined_denominator" if any(r.value is None for r in rows) else None})

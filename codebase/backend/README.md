@@ -130,6 +130,14 @@ devuelve `status: empty`; con denominador cero, `value: null`. Las fechas del
 dataset son 1–3 de octubre de 2026; el dashboard conectado abre ese período.
 No se afirma que su calidad o frescura estén certificadas.
 
+El incremento de laboratorio US-005-Q1 tolera metadatos ausentes sin bloquear
+el cálculo sintético: devuelve linaje vacío con `metadata.lineageStatus=unavailable`
+y conserva los controles de calidad/frescura como `not_evaluated`.
+La UI señala los faltantes sin generar linaje o dimensiones de ejemplo.
+Para consultas, un KPI no visible devuelve 404 genérico y un KPI visible sin
+`queries:execute` devuelve 403; ambos se resuelven antes de ejecutar el cálculo.
+Ver [evidencia y prueba manual US-005](../../docs/ux/us-005/verification.md).
+
 ## Endpoints
 
 | Método | Ruta `/api/v1` | Permiso / comportamiento |

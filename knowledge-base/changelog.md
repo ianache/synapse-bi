@@ -10,6 +10,8 @@ generated:
 
 ## 2026-10-18
 
+- Implementado el incremento de laboratorio US-005-Q1 en `feat/us-005-lab-metadata`: campos ausentes sin error 500, estado explícito de linaje, eliminación de respaldos ficticios, confianza de consulta visible y autorización por identidad/visibilidad/scope antes del cálculo. Verificación: frontend 145 aprobadas, backend 197 aprobadas/1 PostgreSQL opt-in omitida, navegador 4 aprobadas, tipos/build y revisión independiente sin defectos. Evidencia y manual en `docs/ux/us-005/verification.md`. Aceptación manual pendiente; US-005-Q2 y los gates productivos continúan abiertos.
+- US-005-Q1: `human:ianache` aprobó el comportamiento para laboratorio: datos sintéticos explícitos, calidad/frescura `not_evaluated`, metadatos faltantes señalados sin bloquear la demo, y autorización denegada por defecto (403 para scope insuficiente; 404 genérico para recursos ocultos/fuera del tenant). Se actualizó US-005 y API-001. La aprobación no cambia BRC-001 BR-009 ni define umbrales productivos; se registró US-005-Q2 para workload real, controles/umbrales por clase y objetivos de servicio. US-005 permanece CONDITIONAL; no se modificó código ni se declaró la historia terminada.
 - El usuario (`human:ianache`) solicitó expresamente «aprobar ADR-019». Se registró `adr_status: Aceptado` y la decisión humana con fecha, manteniendo `status: draft`, sin añadir `verified`, justificar por el decisor ni cerrar detalles técnicos pendientes. Se sincronizaron índice de ADRs, índice de Knowledge Base, ASR-006 y su catálogo; la disposición del candidato ASR y los demás ADRs no se aprobaron. Se conserva el texto referido a Claude Design, sin sustituir el mandato vigente de fidelidad a Google Stitch. Sin cambios de implementación ni commit.
 
 ## 2026-10-17

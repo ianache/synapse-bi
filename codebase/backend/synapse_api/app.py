@@ -133,7 +133,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return get_kpi(database, user, kpi_id, version)
 
     @app.post("/api/v1/queries", response_model=QueryResult, tags=["Semantic serving"])
-    def query(body: SemanticQuery, request: Request, user: Principal = Depends(require("queries:execute"))):
+    def query(body: SemanticQuery, request: Request, user: Principal = Depends(principal)):
         return execute_query(database, user, body, request.state.request_id)
 
     @app.get("/api/v1/dashboards", response_model=DashboardPage, tags=["Dashboards"])
