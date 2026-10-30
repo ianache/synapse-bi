@@ -60,6 +60,6 @@ La API de desarrollo permite obtener tokens de prueba sin cambiar la identidad a
 
 ## Fuentes
 
-- [Decisiones de alcance y reglas aprobadas](../../../../../knowledge-base/requirements/context-packs/RCP-003-us-006-dashboard-semantico.md), sección 10.
-- [Plan de US-006](../../../../../docs/superpowers/plans/2026-10-28-us-006-interactive-dashboard-plan.md).
-- [Referencias Stitch](../../../../../docs/ux/us-006/README.md) y [evidencia y limitaciones](verification.md).
+- [Decisiones de alcance y reglas aprobadas](../../../knowledge-base/requirements/context-packs/RCP-003-us-006-dashboard-semantico.md), sección 10.
+- [Plan de US-006](../../superpowers/plans/2026-10-28-us-006-interactive-dashboard-plan.md).
+- [Referencias Stitch](README.md) y [evidencia y limitaciones](verification.md).

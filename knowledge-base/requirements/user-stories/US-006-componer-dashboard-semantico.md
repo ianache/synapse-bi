@@ -12,6 +12,8 @@ sources:
     resource: /intents/PRD.md
   - id: RCP-001
     resource: /knowledge-base/requirements/context-packs/RCP-001-bi-analytics-platform-v1-1.md
+  - id: RCP-003
+    resource: /knowledge-base/requirements/context-packs/RCP-003-us-006-dashboard-semantico.md
 ---
 
 # US-006 — Componer dashboard semántico
@@ -42,7 +44,7 @@ sources:
 
 ## 4. Alcance
 
-- **Incluye:** dashboard/visualización basado en consulta semántica reutilizable.
+- **Incluye:** dashboard/visualización basado en consulta semántica reutilizable; primer incremento con tarjetas KPI, gráfico de barras por canal, filtros compartidos de fecha y canal y selección reversible de un elemento gráfico, según decisiones de RCP-003 §10. El propietario crea y edita su dashboard; consumidores autorizados lo consultan.
 - **Excluye:** exportación (se propone historia separada o incorporar tras decisión de release); acceso directo a tablas físicas no autorizado según BRC-001 BR-010.
 
 ## 5. Criterios de aceptación
@@ -58,11 +60,90 @@ Escenario: Crear visualización desde contrato semántico
 
 - **Regla / fuente:** PRD §14 FR-006; BRC-001 BR-010.
 
+### AC-2 — Aplicar selección de un gráfico
+
+```gherkin
+Escenario: Filtrar desde una barra o segmento
+  Dado un dashboard con visualizaciones y consultas autorizadas
+  Cuando el consumidor selecciona una barra o segmento que representa un filtro
+  Entonces las demás visualizaciones compatibles se actualizan con ese filtro
+  Y la selección permanece resaltada
+  Y el filtro aparece como etiqueta visible
+```
+
+- **Fuente:** RCP-003 §10, decisiones del usuario sobre selección gráfica y filtro visible.
+
+### AC-3 — Retirar el filtro gráfico
+
+```gherkin
+Escenario: Retirar la selección
+  Dado un filtro originado en un gráfico
+  Cuando el consumidor elimina su etiqueta o pulsa nuevamente el elemento seleccionado
+  Entonces el filtro se retira
+  Y las visualizaciones compatibles se actualizan sin ese filtro
+```
+
+- **Fuente:** RCP-003 §10, opción 1 aceptada por el usuario.
+
+### AC-4 — Identificar incompatibilidad
+
+```gherkin
+Escenario: El filtro no aplica a una visualización
+  Dado un filtro activo que una visualización no admite
+  Cuando se actualiza el dashboard
+  Entonces esa visualización permanece visible
+  Y muestra que el filtro no aplica
+```
+
+- **Fuente:** RCP-003 §10, opción 1 aceptada por el usuario.
+
+### AC-5 — Limpiar filtros
+
+```gherkin
+Escenario: Limpiar filtros activos
+  Dado un dashboard con filtros activos
+  Cuando el consumidor solicita limpiar filtros
+  Entonces se restaura el período inicial configurado y todos los canales
+  Y las visualizaciones compatibles se actualizan con esos valores
+```
+
+- **Fuente:** RCP-003 §10, opción 1 de limpieza aceptada por el usuario. La configuración del período inicial sigue pendiente.
+
+### AC-6 — Consultar el pulso y explorar por canal
+
+```gherkin
+Escenario: Consultar las visualizaciones del primer incremento
+  Dado un dashboard con KPI y consultas autorizadas compatibles
+  Cuando un consumidor autorizado consulta el dashboard
+  Entonces puede observar los valores en tarjetas KPI y un gráfico de barras por canal
+  Y puede aplicar filtros compartidos de fecha y canal
+```
+
+- **Fuente:** RCP-003 §10, conjunto de visualizaciones y filtros aceptado por el usuario.
+
+### AC-7 — Crear y editar un dashboard propio
+
+```gherkin
+Escenario: Gestionar un dashboard propio
+  Dado un usuario autorizado para crear y editar dashboards
+  Cuando crea o edita su dashboard
+  Entonces puede gestionar su dashboard propio
+  Y los consumidores autorizados pueden consultarlo
+```
+
+- **Fuente:** RCP-003 §10, roles aceptados por el usuario. La asignación de permisos y compartición permanece pendiente.
+
 ## 6. Casos negativos y límite
 
 | Caso | Comportamiento esperado | Fuente o pregunta |
 |---|---|---|
 | No existe consulta semántica autorizada | No se especifica experiencia de error | US-006-Q1 |
+| Una visualización no admite el filtro activo | Permanece visible e indica que el filtro no aplica | RCP-003 §10 |
+| Invitado sin permiso para uno o todos los KPI | Ocultar KPI no autorizados; si no hay KPI autorizado, mostrar estado vacío sin revelar cuáles existen | RCP-003 §10 |
+| Período válido sin datos | Mantener el período y mostrar «Sin datos para este período» en visualizaciones afectadas | RCP-003 §10 |
+| Fecha inicial posterior a fecha final | Rechazar el rango | RCP-003 §10 |
+| Falla una consulta mientras otras responden | Mantener disponibles las visualizaciones exitosas; mostrar error y reintento en la afectada | RCP-003 §10 |
+| Se cambian las fechas con un canal seleccionado | Conservar el canal; si la nueva combinación no tiene datos, mostrar el estado sin datos | RCP-003 §10 |
 | Intento de acceder directamente a tabla física | Usar ruta autorizada; comportamiento de denegación concreto pendiente | BRC-001 BR-010 |
 
 ## 7. Reglas de negocio aplicables
@@ -87,7 +168,7 @@ Escenario: Crear visualización desde contrato semántico
 ## 10. Consideraciones de UX
 
 - **Flujo esperado:** seleccionar modelo/consulta → componer visualización → mostrar a usuarios autorizados.
-- **Estados de la interfaz:** carga, vacío y error no especificados.
+- **Estados de la interfaz:** carga, vacío y error incluidos en el alcance acordado; contenido y comportamiento específicos pendientes. Selección resaltada y filtro visible y reversible; visualización incompatible identificada.
 - **Contenido clave:** visualización del KPI y contexto de frescura/calidad/lineage disponible en US-005.
 
 ## 11. Dependencias, supuestos e hipótesis
@@ -101,7 +182,10 @@ Escenario: Crear visualización desde contrato semántico
 
 | ID | Pregunta | Responsable | Prioridad | Bloquea | Estado |
 |---|---|---|---|---|---|
-| US-006-Q1 | ¿Qué roles crean/consumen dashboards, qué interacciones y cuáles entran en el primer release? | Producto / Visualization & Experience | Alta | Sí | Abierta |
+| US-006-Q1 | ¿Qué directorio permite seleccionar usuarios del tenant y cómo se implementa la autorización y el estado vacío seguro? | Producto / Seguridad | Alta | Sí | Parcial: propietario comparte con personas concretas y puede revocar; invitados sin edición ven solo KPI autorizados y estado vacío si ninguno (RCP-003 §10); detalles abiertos |
+| US-006-Q2 | ¿Qué reglas detalladas aplican a las visualizaciones y dimensiones compatibles? | Producto / UX | Alta | Sí | Parcial: tarjetas KPI y barras por canal, fecha y una selección de canal sincronizada entre barra y gráfico; cambiar canal reemplaza el anterior (RCP-003 §10) |
+| US-006-Q3 | ¿Cuál es la pantalla Stitch exacta aprobada para el recorrido? | Producto / UX | Alta | Sí | Abierta |
+| US-006-Q4 | ¿Qué límites adicionales y mensajes aplican a la selección de fechas? | Producto / UX | Alta | Sí | Parcial: rango inicial explícito configurado por propietario; sin datos conserva rango e informa; fecha inicial posterior a final se rechaza (RCP-003 §10) |
 
 ## 13. Evidencia y trazabilidad
 
@@ -112,7 +196,7 @@ Escenario: Crear visualización desde contrato semántico
 
 Evidencia compartida: `source_type: document`, `observed_at: 2026-10-16T01:22:23-05:00`, `freshness: current`, `owner: Producto / Visualization & Experience (por confirmar)`.
 
-- **Upstream:** [PRD](../../../intents/PRD.md) §§4, 14 FR-006; [RCP-001](../context-packs/RCP-001-bi-analytics-platform-v1-1.md) §§8, 9.
+- **Upstream:** [PRD](../../../intents/PRD.md) §§4, 14 FR-006; [RCP-001](../context-packs/RCP-001-bi-analytics-platform-v1-1.md) §§8, 9; [RCP-003](../context-packs/RCP-003-us-006-dashboard-semantico.md) §10, decisiones humanas de esta conversación.
 - **Downstream (pendiente):** UXR → FLW → SCR → CMP → AC.
 
 ## 14. Evaluación INVEST
@@ -148,7 +232,7 @@ Evidencia compartida: `source_type: document`, `observed_at: 2026-10-16T01:22:23
 ## 17. Preparación y validación
 
 - **Estado:** CONDITIONAL
-- **Motivo:** falta seleccionar dashboard/workload de MVP y precisar experiencia/actores.
+- **Motivo:** dirección interactiva, visualizaciones iniciales, roles funcionales y filtros reversibles acordados; faltan workload, asignación de permisos, reglas detalladas de filtros, referencia Stitch y validación del PO.
 - **Bloqueos de entrega:** US-004/005 y US-006-Q1.
 - **Propuesta de división (si no es pequeña):** dividir composición y consumo sólo si actores/capacidades resultan distintos en el release.
 - **Siguiente rol o Skill:** Producto / Visualization & Experience.
