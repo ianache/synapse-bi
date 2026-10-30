@@ -22,12 +22,55 @@ docker compose up -d --wait postgres
 docker compose run --rm verify
 ```
 
-`prepare.py` genera tres contraseñas distintas en `.docker-secrets/`, sin
+`prepare.py` genera cinco contraseñas distintas en `.docker-secrets/`, sin
 imprimirlas ni sustituir archivos existentes. Ejecútalo con la misma cuenta de
 Windows que utiliza Docker Desktop. Son secretos locales de Compose montados
 como archivos; no equivalen a un gestor de secretos productivo. En POSIX el
 script crea directorio/archivos con permisos 0700/0600; en Windows también se
 deben respetar las ACL de la cuenta. La carpeta está excluida de Git.
+
+## Keycloak de laboratorio
+
+El servicio `keycloak` utiliza la imagen comunitaria `keycloak/keycloak:26.8` de Docker Hub, PostgreSQL
+`bi_analytics` y el esquema dedicado `keycloak`. El rol `keycloak` dispone de
+acceso a su propio esquema y no necesita privilegios sobre `gold`. Se utiliza
+`start-dev` y HTTP limitado a `127.0.0.1:58080`: es exclusivamente para
+laboratorio y no establece seguridad ni configuración productiva. El backend
+BI no queda conectado automáticamente a Keycloak.
+
+El tag `26.8` sigue actualizaciones de esa línea; fijar y validar la versión
+exacta y su soporte antes de producción. Esta imagen comunitaria no equivale a
+una suscripción o a la distribución comercial Red Hat build of Keycloak.
+Desde `codebase/case-study`:
+
+```powershell
+python prepare.py
+docker compose up -d --wait postgres
+docker compose run --rm --no-deps keycloak-db-init
+docker compose up -d --no-deps keycloak
+docker compose ps keycloak
+```
+
+El inicializador crea el rol y esquema si no existen, conserva los existentes
+y falla si su configuración o contraseña no coincide con el secreto local.
+No modifica los esquemas de datos analíticos. Tras el arranque, acceder a
+<http://127.0.0.1:58080/>. La cuenta inicial temporal local se llama `admin`; su
+contraseña está en `.docker-secrets/keycloak_admin_password.txt`. El secreto de
+base está en `.docker-secrets/keycloak_db_password.txt`. Nunca se imprimen al
+ejecutar `prepare.py` ni deben añadirse al repositorio o compartirse por chat.
+La creación inicial de administrador se aplica al primer arranque con una base
+vacía; cambiar el archivo después no rota la credencial ya almacenada.
+
+`KEYCLOAK_IMAGE` y `KEYCLOAK_PORT` permiten modificar imagen y puerto para el
+laboratorio. No se han configurado realm, integración OIDC, usuarios, roles o
+permisos de la aplicación; corresponden al siguiente incremento y requieren sus
+decisiones y pruebas propias.
+
+Verificación local 2026-10-29: la etiqueta `26.8` arrancó Keycloak 26.8.1;
+`/health/ready`, descubrimiento OIDC y autenticación inicial respondieron
+correctamente. La base contenía 101 tablas en `keycloak`; la preparación repetida
+conservó ese esquema y el manifiesto Gold. El rol `keycloak` no tenía permiso
+`USAGE` en el esquema `gold` durante la comprobación.
 
 Se fija `postgres:18.6`, la última versión estable verificada el 2026-10-16 en
 la [imagen oficial](https://hub.docker.com/_/postgres) y el

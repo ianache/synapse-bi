@@ -56,6 +56,61 @@ services:
       - reader_global_password
       - reader_other_password
 
+  keycloak-db-init:
+    image: ${POSTGRES_IMAGE:-postgres:18.6}
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: [bash, /study/keycloak-db-init.sh]
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: bi_analytics
+      PGUSER: bi_admin
+    volumes:
+      - ./keycloak:/study:ro
+    secrets:
+      - admin_password
+      - keycloak_db_password
+
+  keycloak:
+    image: ${KEYCLOAK_IMAGE:-keycloak/keycloak:26.8}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak-db-init:
+        condition: service_completed_successfully
+    entrypoint: [bash, /study/keycloak-start.sh]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: "5432"
+      KC_DB_URL_DATABASE: bi_analytics
+      KC_DB_USERNAME: keycloak
+      KC_DB_SCHEMA: keycloak
+      KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+    ports:
+      - "127.0.0.1:${KEYCLOAK_PORT:-58080}:8080"
+    volumes:
+      - ./keycloak:/study:ro
+    secrets:
+      - keycloak_db_password
+      - keycloak_admin_password
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9000; printf \"GET /health/ready HTTP/1.0\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
 volumes:
   postgres_data:
 
@@ -66,3 +121,7 @@ secrets:
     file: ./.docker-secrets/reader_global_password.txt
   reader_other_password:
     file: ./.docker-secrets/reader_other_password.txt
+  keycloak_db_password:
+    file: ./.docker-secrets/keycloak_db_password.txt
+  keycloak_admin_password:
+    file: ./.docker-secrets/keycloak_admin_password.txt
