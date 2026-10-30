@@ -1,6 +1,7 @@
 import { publishedKpis } from '../domain/kpis'
 
 export interface LocalDashboard {
+  initialPeriod?: { startDate: string; endDate: string } | null
   id: string
   name: string
   owner: string

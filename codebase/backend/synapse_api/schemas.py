@@ -54,6 +54,17 @@ class KpiPage(DTO):
     offset: int
 
 
+class DashboardPeriod(DTO):
+    start_date: date
+    end_date: date
+
+    @model_validator(mode='after')
+    def valid_window(self):
+        if self.start_date > self.end_date or (self.end_date - self.start_date).days > 366:
+            raise ValueError('Date range must be ordered and at most 366 days')
+        return self
+
+
 class Dashboard(DTO):
     id: str
     name: str
@@ -65,6 +76,7 @@ class Dashboard(DTO):
     kpi_ids: list[str]
     version: int
     model_versions: dict[str, int]
+    initial_period: DashboardPeriod | None = None
 
 
 class DashboardPage(DTO):
@@ -92,6 +104,7 @@ class AddWidget(DTO):
 
 
 class SemanticQuery(DTO):
+    dashboard_id: str | None = Field(default=None, max_length=100)
     kpi_id: str = Field(min_length=1, max_length=100)
     model_version: int = Field(ge=1)
     start_date: date

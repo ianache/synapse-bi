@@ -20,7 +20,7 @@ def seed(database: Database):
             for kpi in demo_kpis():
                 connection.execute("INSERT OR IGNORE INTO kpis VALUES(?,?,?,?)", (tenant, kpi.id, kpi.model_version, kpi.model_dump_json(by_alias=True)))
             for id_, title in [("ventas-q3", "Ventas Q3 Ejecutivo"), ("finanzas", "Resumen financiero mensual"), ("comercial", "Seguimiento comercial"), ("personal", "Mi análisis")]:
-                connection.execute("INSERT OR IGNORE INTO dashboards(tenant_id,id,name,normalized_name,owner_id,owner_name,shared,updated_at) VALUES(?,?,?,?,?,?,?,?)", (tenant, id_, title, normalize(title), subject, name, int(id_ != "personal"), "2026-10-03T20:00:00+00:00"))
+                connection.execute("INSERT OR IGNORE INTO dashboards(tenant_id,id,name,normalized_name,owner_id,owner_name,shared,updated_at) VALUES(?,?,?,?,?,?,?,?)", (tenant, id_, title, normalize(title), subject, name, 0, "2026-10-03T20:00:00+00:00"))
             factor = 1 if tenant == "demo-global" else 10
             sales = [("s1", "2026-10-01", "Digital", "Producto A", 100000, 10000, 0, 50000), ("s2", "2026-10-02", "Tienda", "Producto B", 200000, 10000, 20000, 100000), ("s3", "2026-10-03", "Digital", "Producto A", 50000, 0, 0, 25000)]
             for row in sales:

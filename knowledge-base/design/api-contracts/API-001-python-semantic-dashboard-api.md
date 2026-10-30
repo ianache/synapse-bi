@@ -108,11 +108,12 @@ La ausencia no equivale a calidad aprobada ni a autorización productiva.
 ## Errores, concurrencia e idempotencia
 
 - 401 autenticación, 403 permiso, 404 recurso inexistente/no visible.
-- Para consultas, primero se valida la identidad y se resuelve el KPI/version
-  dentro del tenant autorizado. Un identificador oculto/no existente devuelve
-  404 también cuando falta `queries:execute`; un KPI visible sin ese scope
-  devuelve 403. No se consultan hechos ni se registra una ejecución exitosa
-  antes de cumplir ambos controles.
+- Por decisión del usuario para la política de laboratorio, consultar un KPI requiere `catalog:read` y `queries:execute`; añadirlo a un dashboard requiere `catalog:read`, `dashboards:write` y propiedad del dashboard. La ausencia de `catalog:read` se rechaza antes de resolver el KPI con 403 uniforme para identificadores existentes o inexistentes. Esta es una restricción adicional para consumidores que antes solo tenían `queries:execute`; revisar sus permisos antes de adoptar el cambio. No representa autorización individual por KPI.
+- Para consultas, primero se valida la identidad y el permiso `catalog:read`.
+  Con ese permiso, se resuelve el KPI/versión dentro del tenant autorizado:
+  un identificador oculto/no existente devuelve 404 también cuando falta
+  `queries:execute`; un KPI visible sin ese scope devuelve 403. No se consultan
+  hechos ni se registra una ejecución exitosa antes de cumplir los controles.
 - 409 nombre/clave en conflicto; 412 versión obsoleta; 428 falta If-Match.
 - 422 input fuera de contrato; 503 dependencia no disponible.
 - Todos usan error.code/message/requestId y Cache-Control no-store. Por decisión

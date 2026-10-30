@@ -17,7 +17,7 @@ from .database import Database
 from .demo import seed
 from . import dashboards
 from .errors import ApiError
-from .schemas import AddWidget, CreateDashboard, Dashboard, DashboardPage, DevSession, Kpi, KpiPage, QueryResult, SemanticQuery
+from .schemas import AddWidget, CreateDashboard, Dashboard, DashboardPage, DashboardPeriod, DevSession, Kpi, KpiPage, QueryResult, SemanticQuery
 from .serving import execute_query
 from .sources import SourceService, source_router
 from .datasets.body_limit import DatasetBodyLimitMiddleware
@@ -134,11 +134,57 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/v1/queries", response_model=QueryResult, tags=["Semantic serving"])
     def query(body: SemanticQuery, request: Request, user: Principal = Depends(principal)):
+        if body.dashboard_id is not None:
+            with database.connect() as connection:
+                dashboards.visible_row(connection, user, body.dashboard_id)
+                if 'dashboards:read' not in user.scopes or 'catalog:read' not in user.scopes:
+                    raise ApiError(403, 'permission_denied', 'No tienes permiso para realizar esta operación.')
+                widget = connection.execute('SELECT 1 FROM widgets WHERE tenant_id=? AND dashboard_id=? AND kpi_id=? AND model_version=?', (user.tenant, body.dashboard_id, body.kpi_id, body.model_version)).fetchone()
+                if widget is None:
+                    raise ApiError(404, 'dashboard_widget_unavailable', 'Visualización no disponible.')
         return execute_query(database, user, body, request.state.request_id)
 
     @app.get("/api/v1/dashboards", response_model=DashboardPage, tags=["Dashboards"])
     def dashboard_list(limit: Annotated[int, Query(ge=1, le=100)] = 50, offset: Annotated[int, Query(ge=0, le=10000)] = 0, user: Principal = Depends(require("dashboards:read"))):
         return dashboards.list_dashboards(database, user, limit, offset)
+
+    def lab_readers(user: Principal):
+        if settings.environment not in {'development', 'test'} or settings.auth_mode != 'development':
+            raise ApiError(503, 'directory_unavailable', 'Directorio de usuarios no disponible.')
+        people = {
+            'demo-global': [{'subject': 'ana', 'name': 'Ana Rivas'}, {'subject': 'viewer', 'name': 'Lector de ejemplo'}, {'subject': 'admin', 'name': 'Administrador de datos'}],
+            'demo-other': [{'subject': 'otro', 'name': 'Analista de otro tenant'}, {'subject': 'other-admin', 'name': 'Administrador de otro tenant'}],
+        }
+        return people.get(user.tenant, [])
+
+    @app.get('/api/v1/dashboard-readers', tags=['Dashboards'])
+    def dashboard_readers(user: Principal = Depends(require('dashboards:write'))):
+        return {'items': [person for person in lab_readers(user) if person['subject'] != user.subject]}
+
+    @app.get('/api/v1/dashboards/{dashboard_id}/readers', tags=['Dashboards'])
+    def dashboard_grants(dashboard_id: str, user: Principal = Depends(require('dashboards:write'))):
+        people = {person['subject']: person for person in lab_readers(user)}
+        with database.connect() as connection:
+            row = dashboards.visible_row(connection, user, dashboard_id)
+            if row['owner_id'] != user.subject:
+                raise ApiError(403, 'dashboard_read_only', 'No tienes permiso de edición sobre este dashboard.')
+            subjects = connection.execute('SELECT subject FROM dashboard_readers WHERE tenant_id=? AND dashboard_id=? ORDER BY subject', (user.tenant, dashboard_id)).fetchall()
+        return {'items': [people[row['subject']] for row in subjects if row['subject'] in people]}
+
+    @app.put('/api/v1/dashboards/{dashboard_id}/initial-period', response_model=Dashboard, tags=['Dashboards'])
+    def dashboard_initial_period(dashboard_id: str, body: DashboardPeriod, request: Request, response: Response, if_match: Annotated[str | None, Header(max_length=30)] = None, user: Principal = Depends(require('dashboards:write'))):
+        result = dashboards.set_initial_period(database, user, dashboard_id, body, if_match, request.state.request_id)
+        response.headers['ETag'] = f'"{result.version}"'
+        return result
+
+    @app.put('/api/v1/dashboards/{dashboard_id}/readers/{subject}', response_model=Dashboard, tags=['Dashboards'])
+    @app.delete('/api/v1/dashboards/{dashboard_id}/readers/{subject}', response_model=Dashboard, tags=['Dashboards'])
+    def dashboard_reader(dashboard_id: str, subject: str, request: Request, response: Response, if_match: Annotated[str | None, Header(max_length=30)] = None, user: Principal = Depends(require('dashboards:write'))):
+        if subject not in {person['subject'] for person in lab_readers(user)}:
+            raise ApiError(404, 'reader_not_found', 'Usuario no disponible.')
+        result = dashboards.set_reader(database, user, dashboard_id, subject, if_match, request.state.request_id, request.method == 'PUT')
+        response.headers['ETag'] = f'"{result.version}"'
+        return result
 
     @app.get("/api/v1/dashboards/{dashboard_id}", response_model=Dashboard, tags=["Dashboards"])
     def dashboard_get(dashboard_id: str, response: Response, user: Principal = Depends(require("dashboards:read"))):

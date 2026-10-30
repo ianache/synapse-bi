@@ -6,6 +6,8 @@ import type { LocalDashboard } from '../adapters/localDashboards'
 import type { ApiRepository } from '../adapters/apiRepository'
 import { useWorkspaceRepository } from '../hooks/useWorkspaceRepository'
 import { LiveKpiValue } from '../components/LiveKpiValue'
+import { DashboardInteractive } from '../components/DashboardInteractive'
+import { DashboardUnavailable } from '../components/DashboardUnavailable'
 import './kpi-workspace.css'
 
 function KpiBadges({ kpi }: { kpi: PublishedKpi }) {
@@ -100,15 +102,16 @@ function AddKpi({ kpi, dashboards, onCreate, onAdd, onDetail, onSuccess }: { kpi
   </>
 }
 
-function Dashboards({ dashboards, dashboardId, onDetail, kpis, api }: { dashboards: LocalDashboard[]; dashboardId?: string; onDetail: (kpi: PublishedKpi) => void; kpis: PublishedKpi[]; api: ApiRepository | null }) {
+function Dashboards({ dashboards, dashboardId, onDetail, kpis, api, onUpdate }: { dashboards: LocalDashboard[]; dashboardId?: string; onDetail: (kpi: PublishedKpi) => void; kpis: PublishedKpi[]; api: ApiRepository | null; onUpdate: (dashboard: LocalDashboard) => void }) {
   const [period, setPeriod] = useState({ startDate: '2026-10-01', endDate: '2026-10-03', channel: '' })
   const dashboard = dashboards.find(d => d.id === dashboardId)
-  if (dashboardId && !dashboard) return <div className="kpi-empty"><h1>Dashboard no encontrado</h1><AppLink to="/dashboards">Ver dashboards</AppLink></div>
+  if (dashboardId && !dashboard) return <DashboardUnavailable />
+  if (dashboard && api) return <DashboardInteractive key={dashboard.id} dashboard={dashboard} kpis={kpis} api={api} onUpdate={onUpdate} onDetail={onDetail} />
   return <><div className="kpi-page-intro"><span className="kpi-eyebrow">ESPACIO DE ANÁLISIS</span><h1>{dashboard?.name ?? 'Dashboards'}</h1><p>{dashboard ? `Propietario: ${dashboard.owner} · ${dashboard.shared ? 'Compartido' : 'Personal'}` : 'Encuentra tus espacios de análisis y los KPI que has añadido.'}</p></div><AppLink to="/explorar" className="kpi-add-link"><Icon name="plus" />Explorar y añadir KPI</AppLink>{dashboard ? <>{api && <div className="kpi-query-filters"><label>Desde<input type="date" value={period.startDate} onChange={e => setPeriod(p => ({ ...p, startDate: e.target.value }))} /></label><label>Hasta<input type="date" value={period.endDate} onChange={e => setPeriod(p => ({ ...p, endDate: e.target.value }))} /></label><label>Canal<select aria-label="Canal" value={period.channel} onChange={e => setPeriod(p => ({ ...p, channel: e.target.value }))}><option value="">Todos</option><option>Digital</option><option>Tienda</option></select></label></div>}<h2>KPI añadidos</h2><div className="kpi-dashboard-grid">{dashboard.kpiIds.map(id => kpis.find(k => k.id === id)).filter((k): k is PublishedKpi => !!k).map(k => <article className="kpi-result-card" key={k.id}><h3>{k.name}</h3><KpiBadges kpi={k} /><p>{k.definition}</p>{api ? <LiveKpiValue api={api} kpi={k} version={dashboard.modelVersions?.[k.id] ?? k.modelVersion ?? 1} period={{ startDate: period.startDate, endDate: period.endDate, ...(period.channel ? { channel: period.channel } : {}) }} /> : <p className="kpi-muted">Sin conexión al motor de consulta. El valor se mostrará al integrar la API semántica.</p>}<button className="kpi-text-button" onClick={() => onDetail(k)}>Ver definición<Icon name="arrow" /></button></article>)}</div>{!dashboard.kpiIds.length && <p className="kpi-empty">Todavía no has añadido KPI desde el catálogo.</p>}{!api && <p className="kpi-muted">Esta vista muestra los KPI añadidos en la demostración. Las {dashboard.visualizations - dashboard.kpiIds.length} visualizaciones de ejemplo originales no contienen datos de consulta.</p>}</> : <div className="kpi-dashboard-grid">{dashboards.map(d => <AppLink key={d.id} className="kpi-dashboard-tile" to={`/dashboards/${d.id}`}><Icon name="grid" size={26} /><h2>{d.name}</h2><p>{d.owner} · {d.visualizations} visualizaciones</p><Badge>{d.shared ? 'Compartido' : 'Personal'}</Badge><span className="kpi-tile-open">Abrir dashboard →</span></AppLink>)}</div>}</>
 }
 
 export function KpiWorkspace({ path }: { path: string }) {
-  const { api, dashboards, kpis, loading, error, refresh, createDashboard, addKpi } = useWorkspaceRepository()
+  const { api, dashboards, kpis, loading, error, refresh, createDashboard, addKpi, updateDashboard } = useWorkspaceRepository()
   const [detail, setDetail] = useState<PublishedKpi | null>(null)
   const [success, setSuccess] = useState<{ name: string; id: string } | null>(null)
   const previousPath = useRef(path)
@@ -129,7 +132,7 @@ export function KpiWorkspace({ path }: { path: string }) {
   return <SynapseShell active={isDashboards ? 'dashboards' : 'explore'} breadcrumb={addMatch ? 'Explorar KPI / Añadir al dashboard' : isDashboards ? 'Dashboards' : 'Explorar KPI'}>
     {error && <div className="kpi-error-banner"><p role="alert">{error}</p>{api && <Button variant="outline" onClick={() => void refresh()}>Actualizar datos</Button>}</div>}
     {success && <div className="kpi-success" role="status"><Icon name="check" /><span>KPI añadido a <strong>{success.name}</strong>.</span><AppLink to={`/dashboards/${success.id}`}>Abrir dashboard</AppLink><button aria-label="Cerrar confirmación" onClick={() => setSuccess(null)}>×</button></div>}
-    {loading ? <p role="status">Cargando catálogo y dashboards…</p> : error && !kpis.length ? <p>Comprueba que el backend esté disponible y vuelve a cargar los datos.</p> : addMatch ? kpi ? <AddKpi key={kpi.id} kpi={kpi} dashboards={dashboards} onCreate={createDashboard} onAdd={addKpi} onDetail={setDetail} onSuccess={d => { setSuccess({ name: d.name, id: d.id }); navigate(`/dashboards/${d.id}`) }} /> : <div className="kpi-empty"><h1>KPI no encontrado</h1><AppLink to="/explorar">Volver a explorar KPI</AppLink></div> : isDashboards ? <Dashboards dashboards={dashboards} dashboardId={dashboardMatch?.[1]} onDetail={setDetail} kpis={kpis} api={api} /> : <ExploreKpis onDetail={setDetail} kpis={kpis} apiMode={!!api} />}
+    {loading ? <p role="status">Cargando catálogo y dashboards…</p> : error && !kpis.length ? <p>Comprueba que el backend esté disponible y vuelve a cargar los datos.</p> : addMatch ? kpi ? <AddKpi key={kpi.id} kpi={kpi} dashboards={dashboards} onCreate={createDashboard} onAdd={addKpi} onDetail={setDetail} onSuccess={d => { setSuccess({ name: d.name, id: d.id }); navigate(`/dashboards/${d.id}`) }} /> : <div className="kpi-empty"><h1>KPI no encontrado</h1><AppLink to="/explorar">Volver a explorar KPI</AppLink></div> : isDashboards ? <Dashboards dashboards={dashboards} dashboardId={dashboardMatch?.[1]} onDetail={setDetail} kpis={kpis} api={api} onUpdate={updateDashboard} /> : <ExploreKpis onDetail={setDetail} kpis={kpis} apiMode={!!api} />}
     {detail && <KpiDetails kpi={detail} onClose={() => setDetail(null)} />}
   </SynapseShell>
 }

@@ -19,6 +19,13 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('KPI analyst journey', () => {
+  it('shows a generic unavailable state for a dashboard outside the visible list', () => {
+    window.history.replaceState({}, '', '/dashboards/not-visible')
+    render(<App />)
+    expect(screen.getByRole('heading', { name: 'No se puede acceder a este dashboard' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Volver a dashboards' })).toHaveAttribute('href', '/dashboards')
+    expect(screen.getByRole('link', { name: 'Ir al inicio' })).toHaveAttribute('href', '/')
+  })
   it('shows unavailable lineage and dimensions instead of inventing provenance', async () => {
     const prototype = HTMLDialogElement.prototype
     const originals = new Map(['showModal', 'close'].map(key => [key, Object.getOwnPropertyDescriptor(prototype, key)]))

@@ -27,6 +27,13 @@ it('displays the query confidence metadata without claiming certification', asyn
   expect(screen.getByText(/Registros sintéticos → Modelo de ejemplo/)).toBeInTheDocument()
 })
 
+it('shows a clear empty-period state without displaying an old value', async () => {
+  const api = {query: vi.fn().mockResolvedValue({status: 'empty', rows: [], modelVersion: 1, unit: 'PEN', metadata: {dataMode: 'synthetic'}})} as unknown as ApiRepository
+  render(<LiveKpiValue api={api} kpi={publishedKpis[0]} version={1} period={period} />)
+  expect(await screen.findByText('Sin datos para este período')).toBeInTheDocument()
+  expect(screen.queryByText('3,100.00 PEN')).not.toBeInTheDocument()
+})
+
 it.each([{}, {sourceUpdatedAt: null, quality: null, freshness: null, lineage: null},
   {sourceUpdatedAt: '', quality: {status: 'unknown'}, freshness: {status: ''}, lineage: []}])(
   'keeps the numerical result when confidence metadata is unavailable: %j', async metadata => {

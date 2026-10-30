@@ -4,6 +4,14 @@ import { ApiRepository } from './apiRepository'
 afterEach(() => vi.unstubAllGlobals())
 
 describe('API repository', () => {
+  it('returns an empty catalog when a dashboard reader has no catalog permission', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => url.includes('/kpis')
+      ? new Response(JSON.stringify({ error: { code: 'permission_denied', message: 'No autorizado' } }), { status: 403 })
+      : new Response(JSON.stringify({ items: [{ id: 'd1', kpiIds: [] }], total: 1 }))))
+    const result = await new ApiRepository(false, async () => 'test').load()
+    expect(result.kpis).toEqual([])
+    expect(result.dashboards).toHaveLength(1)
+  })
   it('uses explicit development auth once, then a bearer header and paginates', async () => {
     const mock = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ accessToken: 'development-token' })))
       .mockImplementation(async (url: string) => new Response(JSON.stringify({ items: [{ id: url.includes('kpis') ? 'k1' : 'd1' }], total: 1 })))

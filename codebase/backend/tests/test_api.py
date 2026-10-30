@@ -133,7 +133,7 @@ def test_private_dashboards_and_cross_tenant_resources(client, analyst):
     for headers in [other, viewer]:
         assert client.get(f'/api/v1/dashboards/{created["id"]}', headers=headers).status_code == 404
         assert all(d["id"] != created["id"] for d in client.get("/api/v1/dashboards", headers=headers).json()["items"])
-    assert client.get("/api/v1/dashboards/ventas-q3", headers=viewer).json()["editable"] is False
+    assert client.get("/api/v1/dashboards/ventas-q3", headers=viewer).status_code == 404
     assert client.post("/api/v1/dashboards", headers=viewer, json={"name": "Denied"}).status_code == 403
     assert client.put(f'/api/v1/dashboards/{created["id"]}/widgets/{REVENUE}', headers={**other, "If-Match": '"1"'}, json={"kpiId": REVENUE, "modelVersion": 1}).status_code == 404
 

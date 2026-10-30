@@ -26,7 +26,7 @@ export interface QueryResult {
   }
 }
 
-export interface QueryPeriod { startDate: string; endDate: string; channel?: string }
+export interface QueryPeriod { startDate: string; endDate: string; channel?: string; dashboardId?: string }
 
 export class ApiRepository {
   private token: Promise<string> | undefined
@@ -75,7 +75,10 @@ export class ApiRepository {
   }
 
   async load(signal?: AbortSignal) {
-    const [kpis, dashboards] = await Promise.all([this.all<PublishedKpi>('/kpis', signal), this.all<LocalDashboard>('/dashboards', signal)])
+    const [kpis, dashboards] = await Promise.all([this.all<PublishedKpi>('/kpis', signal).catch(error => {
+      if (error instanceof ApiRequestError && error.status === 403 && error.code === 'permission_denied') return []
+      throw error
+    }), this.all<LocalDashboard>('/dashboards', signal)])
     return { kpis, dashboards }
   }
 
@@ -89,6 +92,26 @@ export class ApiRepository {
 
   addKpi(dashboard: LocalDashboard, kpi: PublishedKpi) {
     return this.request<LocalDashboard>(`/dashboards/${encodeURIComponent(dashboard.id)}/widgets/${encodeURIComponent(kpi.id)}`, { method: 'PUT', headers: { 'If-Match': `"${dashboard.version}"` }, body: JSON.stringify({ kpiId: kpi.id, modelVersion: kpi.modelVersion }) })
+  }
+
+  removeKpi(dashboard: LocalDashboard, kpiId: string) {
+    return this.request<LocalDashboard>(`/dashboards/${encodeURIComponent(dashboard.id)}/widgets/${encodeURIComponent(kpiId)}`, { method: 'DELETE', headers: { 'If-Match': `"${dashboard.version}"` } })
+  }
+
+  setInitialPeriod(dashboard: LocalDashboard, period: { startDate: string; endDate: string }) {
+    return this.request<LocalDashboard>(`/dashboards/${encodeURIComponent(dashboard.id)}/initial-period`, { method: 'PUT', headers: { 'If-Match': `"${dashboard.version}"` }, body: JSON.stringify(period) })
+  }
+
+  readers() {
+    return this.request<{ items: { subject: string; name: string }[] }>('/dashboard-readers')
+  }
+
+  dashboardReaders(dashboard: LocalDashboard) {
+    return this.request<{ items: { subject: string; name: string }[] }>(`/dashboards/${encodeURIComponent(dashboard.id)}/readers`)
+  }
+
+  setReader(dashboard: LocalDashboard, subject: string, grant: boolean) {
+    return this.request<LocalDashboard>(`/dashboards/${encodeURIComponent(dashboard.id)}/readers/${encodeURIComponent(subject)}`, { method: grant ? 'PUT' : 'DELETE', headers: { 'If-Match': `"${dashboard.version}"` } })
   }
 
   query(kpi: PublishedKpi, modelVersion: number, period: QueryPeriod, signal?: AbortSignal) {

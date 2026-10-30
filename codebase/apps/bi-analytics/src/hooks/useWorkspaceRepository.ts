@@ -52,5 +52,6 @@ export function useWorkspaceRepository() {
     } catch (reason) { return failure(reason) }
   }
 
-  return { api, dashboards, kpis, loading, error, refresh, createDashboard, addKpi }
+  function updateDashboard(updated: LocalDashboard) { setDashboards(current => current.map(d => d.id === updated.id ? updated : d)) }
+  return { api, dashboards, kpis, loading, error, refresh, createDashboard, addKpi, updateDashboard }
 }

@@ -7,7 +7,7 @@ from .auth import Principal
 from .catalog import get_kpi, normalize
 from .database import Database
 from .errors import ApiError
-from .schemas import AddWidget, CreateDashboard, Dashboard, DashboardPage
+from .schemas import AddWidget, CreateDashboard, Dashboard, DashboardPage, DashboardPeriod
 
 
 def now() -> str:
@@ -19,7 +19,7 @@ def audit(connection, user: Principal, action: str, resource: str, request_id: s
 
 
 def visible_row(connection, user: Principal, id_: str):
-    row = connection.execute("SELECT * FROM dashboards WHERE tenant_id=? AND id=? AND (owner_id=? OR shared=1)", (user.tenant, id_, user.subject)).fetchone()
+    row = connection.execute("SELECT * FROM dashboards d WHERE tenant_id=? AND id=? AND (owner_id=? OR EXISTS (SELECT 1 FROM dashboard_readers r WHERE r.tenant_id=d.tenant_id AND r.dashboard_id=d.id AND r.subject=?))", (user.tenant, id_, user.subject, user.subject)).fetchone()
     if row is None:
         raise ApiError(404, "dashboard_not_found", "Dashboard no disponible.")
     return row
@@ -27,7 +27,11 @@ def visible_row(connection, user: Principal, id_: str):
 
 def dto(connection, user: Principal, row) -> Dashboard:
     widgets = connection.execute("SELECT kpi_id,model_version FROM widgets WHERE tenant_id=? AND dashboard_id=? ORDER BY position,kpi_id", (user.tenant, row["id"])).fetchall()
-    return Dashboard(id=row["id"], name=row["name"], owner=row["owner_name"], updated=row["updated_at"], visualizations=len(widgets), shared=bool(row["shared"]), editable=row["owner_id"] == user.subject and "dashboards:write" in user.scopes, kpi_ids=[w["kpi_id"] for w in widgets], version=row["version"], model_versions={w["kpi_id"]: w["model_version"] for w in widgets})
+    if 'catalog:read' not in user.scopes:
+        widgets = []
+    shared = connection.execute('SELECT 1 FROM dashboard_readers WHERE tenant_id=? AND dashboard_id=? LIMIT 1', (user.tenant, row['id'])).fetchone() is not None
+    period = DashboardPeriod(start_date=row['initial_start_date'], end_date=row['initial_end_date']) if row['initial_start_date'] and row['initial_end_date'] else None
+    return Dashboard(id=row["id"], name=row["name"], owner=row["owner_name"], updated=row["updated_at"], visualizations=len(widgets), shared=shared, editable=row["owner_id"] == user.subject and "dashboards:write" in user.scopes, kpi_ids=[w["kpi_id"] for w in widgets], version=row["version"], model_versions={w["kpi_id"]: w["model_version"] for w in widgets}, initial_period=period)
 
 
 def get_dashboard(database: Database, user: Principal, id_: str) -> Dashboard:
@@ -37,11 +41,36 @@ def get_dashboard(database: Database, user: Principal, id_: str) -> Dashboard:
 
 def list_dashboards(database: Database, user: Principal, limit: int, offset: int) -> DashboardPage:
     with database.connect() as connection:
-        values = (user.tenant, user.subject)
-        condition = " FROM dashboards WHERE tenant_id=? AND (owner_id=? OR shared=1)"
+        values = (user.tenant, user.subject, user.subject)
+        condition = " FROM dashboards d WHERE tenant_id=? AND (owner_id=? OR EXISTS (SELECT 1 FROM dashboard_readers r WHERE r.tenant_id=d.tenant_id AND r.dashboard_id=d.id AND r.subject=?))"
         total = connection.execute("SELECT COUNT(*)" + condition, values).fetchone()[0]
         rows = connection.execute("SELECT *" + condition + " ORDER BY updated_at DESC,id LIMIT ? OFFSET ?", (*values, limit, offset)).fetchall()
         return DashboardPage(items=[dto(connection, user, row) for row in rows], total=total, limit=limit, offset=offset)
+
+
+def set_reader(database: Database, user: Principal, id_: str, subject: str, expected_version: str | None, request_id: str, grant: bool) -> Dashboard:
+    with database.connect(write=True) as connection:
+        row = visible_row(connection, user, id_)
+        require_edit(row, user, expected_version)
+        if subject == row['owner_id']:
+            raise ApiError(422, 'invalid_reader', 'No se puede modificar el acceso del propietario.')
+        if grant:
+            changed = connection.execute('INSERT OR IGNORE INTO dashboard_readers VALUES(?,?,?)', (user.tenant, id_, subject)).rowcount
+        else:
+            changed = connection.execute('DELETE FROM dashboard_readers WHERE tenant_id=? AND dashboard_id=? AND subject=?', (user.tenant, id_, subject)).rowcount
+        if changed:
+            connection.execute('UPDATE dashboards SET version=version+1,updated_at=? WHERE tenant_id=? AND id=?', (now(), user.tenant, id_))
+            audit(connection, user, 'dashboard.reader_granted' if grant else 'dashboard.reader_revoked', id_, request_id)
+        return dto(connection, user, visible_row(connection, user, id_))
+
+
+def set_initial_period(database: Database, user: Principal, id_: str, period: DashboardPeriod, expected_version: str | None, request_id: str) -> Dashboard:
+    with database.connect(write=True) as connection:
+        row = visible_row(connection, user, id_)
+        require_edit(row, user, expected_version)
+        connection.execute('UPDATE dashboards SET initial_start_date=?,initial_end_date=?,version=version+1,updated_at=? WHERE tenant_id=? AND id=?', (period.start_date.isoformat(), period.end_date.isoformat(), now(), user.tenant, id_))
+        audit(connection, user, 'dashboard.period_updated', id_, request_id)
+        return dto(connection, user, visible_row(connection, user, id_))
 
 
 def create_dashboard(database: Database, user: Principal, body: CreateDashboard, key: str | None, request_id: str) -> Dashboard:
@@ -77,6 +106,8 @@ def add_widget(database: Database, user: Principal, id_: str, body: AddWidget, e
     with database.connect(write=True) as connection:
         row = visible_row(connection, user, id_)
         require_edit(row, user, expected_version)
+        if "catalog:read" not in user.scopes:
+            raise ApiError(403, "permission_denied", "No tienes permiso para realizar esta operación.")
         get_kpi(database, user, body.kpi_id, body.model_version)
         existing = connection.execute("SELECT model_version FROM widgets WHERE tenant_id=? AND dashboard_id=? AND kpi_id=?", (user.tenant, id_, body.kpi_id)).fetchone()
         if existing:

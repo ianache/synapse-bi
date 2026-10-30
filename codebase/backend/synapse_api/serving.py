@@ -14,6 +14,8 @@ def format_value(value: Decimal | None) -> str | None:
 
 
 def execute_query(database: Database, user: Principal, body: SemanticQuery, request_id: str) -> QueryResult:
+    if "catalog:read" not in user.scopes:
+        raise ApiError(403, "permission_denied", "No tienes permiso para realizar esta operación.")
     kpi = get_kpi(database, user, body.kpi_id, body.model_version)
     # Resolve visibility within the authenticated tenant before returning a scope
     # error. Hidden and nonexistent identifiers must remain indistinguishable.

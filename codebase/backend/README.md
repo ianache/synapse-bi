@@ -134,7 +134,8 @@ El incremento de laboratorio US-005-Q1 tolera metadatos ausentes sin bloquear
 el cálculo sintético: devuelve linaje vacío con `metadata.lineageStatus=unavailable`
 y conserva los controles de calidad/frescura como `not_evaluated`.
 La UI señala los faltantes sin generar linaje o dimensiones de ejemplo.
-Para consultas, un KPI no visible devuelve 404 genérico y un KPI visible sin
+Para consultas se requiere `catalog:read`; su ausencia devuelve 403 uniforme
+antes de resolver el KPI. Con acceso al catálogo, un KPI no visible devuelve 404 genérico y un KPI visible sin
 `queries:execute` devuelve 403; ambos se resuelven antes de ejecutar el cálculo.
 Ver [evidencia y prueba manual US-005](../../docs/ux/us-005/verification.md).
 
@@ -146,17 +147,20 @@ Ver [evidencia y prueba manual US-005](../../docs/ux/us-005/verification.md).
 | GET | `/me` | Identidad, tenant y scopes del JWT validado. |
 | GET | `/kpis` | `catalog:read`; q, category, owner, sort, limit, offset. |
 | GET | `/kpis/{id}?version=1` | Definición publicada, dimensiones y lineage del modelo. |
-| POST | `/queries` | `queries:execute`; KPI/version, fechas, channel y groupBy permitidos. |
+| POST | `/queries` | `catalog:read` + `queries:execute`; KPI/version, fechas, channel y groupBy permitidos. |
 | GET | `/dashboards` | `dashboards:read`; sólo propios o compartidos del mismo tenant. |
 | GET | `/dashboards/{id}` | Devuelve `ETag` con la versión actual. |
 | POST | `/dashboards` | `dashboards:write`; nombre, dashboard personal; `Idempotency-Key` opcional. |
-| PUT | `/dashboards/{id}/widgets/{kpiId}` | Propietario + permiso de escritura; cuerpo kpiId/modelVersion; `If-Match` obligatorio. |
+| PUT | `/dashboards/{id}/widgets/{kpiId}` | Propietario + `dashboards:write` + `catalog:read`; cuerpo kpiId/modelVersion; `If-Match` obligatorio. |
 | DELETE | `/dashboards/{id}/widgets/{kpiId}` | Mismos controles de edición y versión. |
 
 Todos los DTO usan camelCase. El listado pagina con límite máximo 100. Las
 consultas admiten ventanas de hasta 366 días y dimensiones de una lista cerrada;
 no hay endpoint de SQL arbitrario. Los widgets conservan la versión del modelo.
 Se serializan escrituras con transacciones y control optimista de versiones.
+El requisito adicional `catalog:read` cambia la compatibilidad para identidades
+que antes consultaban solo con `queries:execute`; deben recibir el scope antes
+de adoptar esta versión. No equivale a autorización individual por KPI.
 
 Errores: `{ "error": { "code": "…", "message": "…", "requestId": "…" } }`.
 401: token ausente/inválido; 403: permiso insuficiente; 404: recurso no visible;
