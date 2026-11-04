@@ -1,11 +1,15 @@
 """Bounded, read-only PostgreSQL metadata connector. Never reads business rows."""
 from ipaddress import ip_address
 import json
+from pathlib import Path
+import logging
 
 import psycopg
 from psycopg.rows import dict_row
 
 from .errors import ApiError
+
+logger = logging.getLogger("synapse_api.source_connector")
 
 
 def approved_address(settings, body):
@@ -93,3 +97,107 @@ def observe_postgres(settings, body, password, metadata=False):
         if code == "42501":
             raise ApiError(422, "access_denied", "La cuenta no tiene los permisos de lectura necesarios.") from None
         raise ApiError(422, "connection_failed", "No se pudo conectar u observar PostgreSQL. Revisa disponibilidad, TLS y permisos.") from None
+
+
+def _laboratory_connect_kwargs(settings, body, username, password, application_name):
+    address = approved_address(settings, body)
+    kwargs = dict(host=body.host, hostaddr=address, port=body.port, dbname=body.database,
+                  user=username, password=password, sslmode=body.tls_mode,
+                  connect_timeout=3, application_name=application_name,
+                  options="-c statement_timeout=15000 -c lock_timeout=2000 -c search_path=pg_catalog")
+    if body.tls_mode == "verify-full":
+        kwargs["sslrootcert"] = settings.source_ca_file or "system"
+    return kwargs
+
+
+def read_cdc_events(settings, body, password, tenant_id, after_capture, *, through_capture=None, limit=1000):
+    """Read only the fixed lab CDC relation through the registered tenant reader."""
+    if "gold" not in body.schemas or not 1 <= limit <= 5000:
+        raise ApiError(422, "cdc_source_unavailable", "La fuente no tiene el alcance CDC autorizado.")
+    upper = "AND capture_id <= %s" if through_capture is not None else ""
+    parameters = (tenant_id, after_capture, through_capture, limit) if through_capture is not None else (tenant_id, after_capture, limit)
+    query = f"""SELECT capture_id,source_event_id,business_key,operation,event_timestamp,source_position,after_image
+        FROM gold.cdc_sales_events WHERE tenant_id=%s AND capture_id>%s {upper}
+        ORDER BY capture_id LIMIT %s"""
+    kwargs = _laboratory_connect_kwargs(settings, body, body.username, password, "synapse-cdc-reader")
+    try:
+        with psycopg.connect(**kwargs, row_factory=dict_row) as conn:
+            conn.read_only = True
+            rows = conn.execute(query, parameters).fetchall()
+            return [dict(row) for row in rows]
+    except psycopg.Error as error:
+        sqlstate = getattr(error, "sqlstate", None)
+        logger.error("cdc_source_read_failed error_type=%s sqlstate=%s", type(error).__name__, sqlstate)
+        if sqlstate in {"28P01", "28000"}:
+            raise ApiError(503, "cdc_source_credentials", "No se pudieron validar las credenciales lectoras de CDC.") from None
+        if sqlstate == "42501":
+            raise ApiError(503, "cdc_source_access_denied", "La cuenta lectora no tiene acceso a la tabla CDC del laboratorio.") from None
+        if sqlstate in {"42P01", "42703"}:
+            raise ApiError(503, "cdc_source_contract_unavailable", "La tabla CDC del laboratorio no coincide con el contrato esperado.") from None
+        if sqlstate == "57014":
+            raise ApiError(503, "cdc_source_timeout", "La lectura de CDC superó el límite de tiempo del laboratorio.") from None
+        raise ApiError(503, "cdc_source_unavailable", "La lectura de CDC no está disponible; conserva el checkpoint para reintentar.") from None
+
+
+def connect_prepared_writer(settings, body):
+    """Open a separate lab writer connection; caller owns transaction and close."""
+    if settings.environment == "production":
+        raise ApiError(503, "prepared_writer_disabled", "La escritura CDC solo está habilitada en el laboratorio.")
+    secret_path = Path(settings.prepared_writer_secret_file) if settings.prepared_writer_secret_file else None
+    if secret_path is None:
+        raise ApiError(503, "prepared_writer_unconfigured", "El operador debe configurar la credencial escritora del laboratorio.")
+    try:
+        password = secret_path.read_text(encoding="utf-8").strip()
+        if not password:
+            raise OSError("empty secret")
+    except OSError:
+        raise ApiError(503, "prepared_writer_unavailable", "La credencial escritora del laboratorio no está disponible.") from None
+    kwargs = _laboratory_connect_kwargs(settings, body, "bi_prepared_writer", password, "synapse-prepared-writer")
+    try:
+        return psycopg.connect(**kwargs, row_factory=dict_row)
+    except psycopg.Error:
+        raise ApiError(503, "prepared_writer_unavailable", "No se pudo conectar al almacén preparado del laboratorio.") from None
+
+
+def read_prepared_records(settings, body, password, tenant_id, dataset_id, relation, version_id, limit, offset):
+    """Read fixed prepared relations using the registered tenant reader role."""
+    if relation == "versions":
+        count_sql = "SELECT count(*) AS n FROM prepared.dataset_versions WHERE tenant_id=%s AND dataset_id=%s"
+        data_sql = "SELECT * FROM prepared.dataset_versions WHERE tenant_id=%s AND dataset_id=%s ORDER BY version_number DESC LIMIT %s OFFSET %s"
+        params = (tenant_id, dataset_id)
+        version_params = None
+    elif relation == "history":
+        count_sql = "SELECT count(*) AS n FROM prepared.version_events WHERE tenant_id=%s AND dataset_id=%s AND version_id=%s"
+        data_sql = "SELECT source_event_id,business_key,operation,event_timestamp,source_position,timestamp_ambiguous,after_image FROM prepared.version_events WHERE tenant_id=%s AND dataset_id=%s AND version_id=%s ORDER BY ordinal LIMIT %s OFFSET %s"
+        params = (tenant_id, dataset_id, version_id)
+        version_params = params
+    elif relation == "current-state":
+        count_sql = "SELECT count(*) AS n FROM prepared.current_sales_state WHERE tenant_id=%s AND dataset_id=%s AND version_id=%s"
+        data_sql = "SELECT business_key,after_image,last_event_id FROM prepared.current_sales_state WHERE tenant_id=%s AND dataset_id=%s AND version_id=%s ORDER BY business_key LIMIT %s OFFSET %s"
+        params = (tenant_id, dataset_id, version_id)
+        version_params = params
+    else:
+        raise ApiError(422, "prepared_relation_unavailable", "La relación preparada no está disponible.")
+    if not 1 <= limit <= 500 or offset < 0:
+        raise ApiError(422, "invalid_page", "La página solicitada no está disponible.")
+    kwargs = _laboratory_connect_kwargs(settings, body, body.username, password, "synapse-prepared-reader")
+    try:
+        with psycopg.connect(**kwargs, row_factory=dict_row) as conn:
+            conn.read_only = True
+            if version_params and conn.execute("SELECT 1 FROM prepared.dataset_versions WHERE tenant_id=%s AND dataset_id=%s AND version_id=%s", version_params).fetchone() is None:
+                raise ApiError(404, "prepared_version_not_found", "Versión preparada no disponible.")
+            total = conn.execute(count_sql, params).fetchone()["n"]
+            rows = conn.execute(data_sql, (*params, limit, offset)).fetchall()
+            return total, [dict(row) for row in rows]
+    except ApiError:
+        raise
+    except psycopg.Error as error:
+        sqlstate = getattr(error, "sqlstate", None)
+        logger.error("prepared_data_read_failed error_type=%s sqlstate=%s", type(error).__name__, sqlstate)
+        if sqlstate in {"28P01", "28000"}:
+            raise ApiError(503, "prepared_reader_credentials", "No se pudieron validar las credenciales lectoras del dataset preparado.") from None
+        if sqlstate == "42501":
+            raise ApiError(503, "prepared_reader_access_denied", "La cuenta lectora no tiene acceso a la salida preparada.") from None
+        if sqlstate in {"42P01", "42703"}:
+            raise ApiError(503, "prepared_schema_unavailable", "El esquema preparado no está disponible.") from None
+        raise ApiError(503, "prepared_data_unavailable", "La lectura del dataset preparado no está disponible.") from None

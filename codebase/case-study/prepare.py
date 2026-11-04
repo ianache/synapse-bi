@@ -8,7 +8,7 @@ def main(directory: Path | None = None):
     directory = directory or Path(__file__).resolve().parent / ".docker-secrets"
     directory.mkdir(mode=0o700, exist_ok=True)
     created = 0
-    for name in ("admin_password", "reader_global_password", "reader_other_password", "keycloak_db_password", "keycloak_admin_password"):
+    for name in ("admin_password", "reader_global_password", "reader_other_password", "prepared_writer_password", "keycloak_db_password", "keycloak_admin_password"):
         path = directory / f"{name}.txt"
         try:
             fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)

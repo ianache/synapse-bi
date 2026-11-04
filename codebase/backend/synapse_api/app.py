@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 import logging
 import sqlite3
+import asyncio
 from typing import Annotated, Literal
 from uuid import uuid4
 
@@ -30,6 +31,10 @@ from .semantic_catalog.body_limit import SemanticBodyLimitMiddleware
 from .semantic_models.router import semantic_models_router
 from .semantic_models.service import SemanticModelsService
 from .semantic_models.body_limit import ModelsBodyLimitMiddleware
+from .preparation.router import preparation_router
+from .preparation.service import PreparationService
+from .preparation.body_limit import PreparationBodyLimitMiddleware
+from .preparation.poller import poller_loop
 
 logger = logging.getLogger("synapse_api")
 
@@ -44,7 +49,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         database.initialize()
         if settings.seed_demo:
             seed(database)
-        yield
+        poller_task = asyncio.create_task(poller_loop(app.state.preparation)) if settings.preparation_polling_enabled else None
+        try:
+            yield
+        finally:
+            if poller_task:
+                poller_task.cancel()
+                try:
+                    await poller_task
+                except asyncio.CancelledError:
+                    pass
 
     app = FastAPI(title="Synapse BI API", version="0.1.0", lifespan=lifespan, description="API v1 de catálogo, consultas semánticas y dashboards. Datos sintéticos sólo mediante configuración explícita de desarrollo.")
     app.state.database = database
@@ -60,6 +74,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.semantic_models = SemanticModelsService(database)
     app.include_router(semantic_models_router(app.state.semantic_models))
     app.add_middleware(ModelsBodyLimitMiddleware)
+    app.state.preparation = PreparationService(database, settings, app.state.sources)
+    app.include_router(preparation_router(app.state.preparation, database))
+    app.add_middleware(PreparationBodyLimitMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.allowed_origins), allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], allow_headers=["Authorization", "Content-Type", "If-Match", "Idempotency-Key"], expose_headers=["ETag", "X-Request-ID", "Location"])
 
     def error_response(request, status, code, message, details=None):

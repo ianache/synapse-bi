@@ -13,8 +13,8 @@ export function AppLink({to, children, ...props}: Omit<React.AnchorHTMLAttribute
   }}>{children}</a>
 }
 
-export function SynapseShell({children, active, breadcrumb, breadcrumbs}: {
-  children: ReactNode; active: ShellSection; breadcrumb: string; breadcrumbs?: BreadcrumbItem[]
+export function SynapseShell({children, active, breadcrumb, breadcrumbs, className = '', mobileBrand}: {
+  children: ReactNode; active: ShellSection; breadcrumb: string; breadcrumbs?: BreadcrumbItem[]; className?: string; mobileBrand?: {label: string; subtitle?: string}
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const bodyRef = useRef<HTMLDivElement>(null)
@@ -45,7 +45,7 @@ export function SynapseShell({children, active, breadcrumb, breadcrumbs}: {
   const context = active === 'models' ? 'Prototipo · Entorno Laboratorio' : active === 'semantic'
     ? 'Capa de definición en borrador' : ['sources','datasets'].includes(active)
     ? 'Administración · Metadatos técnicos' : 'Vista previa · Datos de ejemplo'
-  return <div className={`synapse bi-root bi-navigation-layout bi-shell-layout${active === 'models' ? ' synapse-semantic synapse-models' : active === 'semantic' ? ' synapse-semantic' : active === 'datasets' ? ' synapse-datasets' : ''}`}>
+  return <div className={`synapse bi-root bi-navigation-layout bi-shell-layout${active === 'models' ? ' synapse-semantic synapse-models' : active === 'semantic' ? ' synapse-semantic' : active === 'datasets' ? ' synapse-datasets' : ''}${className ? ` ${className}` : ''}`}>
     <a href="#workspace" className="synapse-skip">Saltar al contenido</a>
     <Menubar id="synapse-navigation" brand={{label:'Synapse BI',subtitle:'Semantic Intelligence',badge:'Enterprise',href:'/'}}
       {...navigation} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} onNavigate={navigate}
@@ -53,7 +53,7 @@ export function SynapseShell({children, active, breadcrumb, breadcrumbs}: {
       utilityActions={shellUtilities}
       organization={demo ? {name:'Espacio de demostración',description:'Sandbox · organización no configurada'} : undefined}/>
     <div ref={bodyRef} className="synapse-body bi-shell-body">
-      <Mainbar breadcrumbs={trail} actions={shellActions} menubarId="synapse-navigation" mobileMenuOpen={mobileOpen}
+      <Mainbar breadcrumbs={trail} actions={shellActions} mobileBrand={mobileBrand} menubarId="synapse-navigation" mobileMenuOpen={mobileOpen}
         onMobileMenuToggle={() => setMobileOpen(value => !value)} onNavigate={navigate}/>
       <main id="workspace" tabIndex={-1} className="synapse-main">
         <p className="bi-shell-context">{context}</p>{children}

@@ -75,7 +75,7 @@ class Database:
             # Reject future schemas before any bootstrap DDL can change them.
             if connection.execute("SELECT 1 FROM sqlite_master WHERE name='schema_migrations'").fetchone():
                 version = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0]
-                if version is not None and version not in {1, 2, 3, 4, 5, 6}:
+                if version is not None and version not in {1, 2, 3, 4, 5, 6, 7, 8}:
                     raise RuntimeError("Database schema version is not supported")
             connection.execute("PRAGMA journal_mode = WAL")
             from .sources import SOURCE_SCHEMA
@@ -83,6 +83,7 @@ class Database:
             from .semantic_catalog.migration import apply_v4
             from .semantic_models.migration import apply_v5
             from .dashboard_migration import apply_v6
+            from .preparation.migration import apply_v7, apply_v8
             connection.execute("BEGIN IMMEDIATE")
             # These fixed bootstrap scripts contain no triggers or semicolons
             # inside literals. Individual execute keeps all DDL transactional.
@@ -98,3 +99,8 @@ class Database:
                 apply_v5(connection)
             if version < 6:
                 apply_v6(connection)
+            if version < 7:
+                apply_v7(connection)
+                version = 7
+            if version < 8:
+                apply_v8(connection)

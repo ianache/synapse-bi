@@ -8,6 +8,10 @@ generated:
 
 # Changelog
 
+## 2026-11-02
+
+- Implementado en worktree `feat/us-007-backend-cdc` el slice backend de US-007: CDC sintético de ventas, esquema PostgreSQL `prepared` tenant-scoped e inmutable, pipeline/catálogo SQLite v7, procesamiento compartido manual/poll, evidencia saneada, reintentos enlazados, lecturas de versión/historial/estado mediante credencial lectora y poller optativo de 60 s con advisory lock. Los cuatro controles de calidad bloquean publicación y un rango fallido queda retenido para reintento manual. Validación: verificación SQL en PostgreSQL aislado, integración de publicación + rechazo + baja + polling, pruebas de ruta/aislamiento/body-limit/poller y suite backend completa. Guía: `docs/ux/us-007/backend-manual-validation.md`. UI y comparación visual Stitch quedan para el siguiente incremento.
+
 ## 2026-10-18
 
 - Implementado el incremento de laboratorio US-005-Q1 en `feat/us-005-lab-metadata`: campos ausentes sin error 500, estado explícito de linaje, eliminación de respaldos ficticios, confianza de consulta visible y autorización por identidad/visibilidad/scope antes del cálculo. Verificación: frontend 145 aprobadas, backend 197 aprobadas/1 PostgreSQL opt-in omitida, navegador 4 aprobadas, tipos/build y revisión independiente sin defectos. Evidencia y manual en `docs/ux/us-005/verification.md`. Aceptación manual pendiente; US-005-Q2 y los gates productivos continúan abiertos.

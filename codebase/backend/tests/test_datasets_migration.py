@@ -1,4 +1,4 @@
-"""Catch partial schema changes, data loss, future-version mutation and tenant FK holes."""
+﻿"""Catch partial schema changes, data loss, future-version mutation and tenant FK holes."""
 import sqlite3
 
 import pytest
@@ -26,7 +26,7 @@ def test_new_v1_v2_upgrade_preserves_data(tmp_path, version):
     database.initialize()
     database.initialize()
     with database.connect() as conn:
-        assert conn.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0] == 6
+        assert conn.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0] == 8
         assert len(conn.execute("SELECT name FROM sqlite_master WHERE name IN ('dataset_registry','dataset_columns','dataset_inputs','dataset_requests')").fetchall()) == 4
         if version:
             assert conn.execute("SELECT name FROM dashboards").fetchone()[0] == "Original"

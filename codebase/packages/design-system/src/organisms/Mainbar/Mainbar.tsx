@@ -3,7 +3,7 @@ import {NavigationLink} from '../navigation/NavigationLink'
 import type {MainbarProps} from '../navigation/types'
 import '../navigation/navigation.css'
 
-export function Mainbar({breadcrumbs, actions = [], profile, menubarId, mobileMenuOpen, onMobileMenuToggle, onNavigate, className = ''}: MainbarProps) {
+export function Mainbar({breadcrumbs, actions = [], profile, menubarId, mobileMenuOpen, onMobileMenuToggle, onNavigate, mobileBrand, className = ''}: MainbarProps) {
   const identity = profile?.name.trim() ? profile : undefined
   const profileContent = identity && <>
     <span className="bi-navigation-avatar" aria-hidden="true">{identity.initials ?? identity.name.trim().split(/\s+/).slice(0,2).map(word => Array.from(word)[0]).join('').toUpperCase()}</span>
@@ -21,6 +21,7 @@ export function Mainbar({breadcrumbs, actions = [], profile, menubarId, mobileMe
           : <span aria-current={index === breadcrumbs.length - 1 ? 'page' : undefined}>{item.label}</span>}
       </li>)}</ol>
     </nav>
+    {mobileBrand && <span className="bi-navigation-mobile-brand"><span aria-hidden="true">S</span><span><strong>{mobileBrand.label}</strong>{mobileBrand.subtitle && <small>{mobileBrand.subtitle}</small>}</span></span>}
     <div className="bi-navigation-tools">
       {actions.map(action => {
         const unavailable = Boolean(action.unavailableReason) || !action.onAction

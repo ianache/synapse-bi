@@ -1,4 +1,4 @@
-import sqlite3
+﻿import sqlite3
 
 import pytest
 
@@ -18,7 +18,7 @@ def test_v6_makes_legacy_shared_private_and_preserves_content(tmp_path):
     db.initialize()
     db.initialize()
     with db.connect() as conn:
-        assert conn.execute('SELECT MAX(version) FROM schema_migrations').fetchone()[0] == 6
+        assert conn.execute('SELECT MAX(version) FROM schema_migrations').fetchone()[0] == 8
         assert [tuple(row) for row in conn.execute('SELECT tenant_id,id,name,owner_id FROM dashboards')] == [tuple(row) for row in before]
         assert [tuple(row) for row in conn.execute('SELECT * FROM widgets')] == [tuple(row) for row in widgets_before]
         assert conn.execute("SELECT shared FROM dashboards WHERE name='Existing'").fetchone()[0] == 0
