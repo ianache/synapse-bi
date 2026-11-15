@@ -88,6 +88,11 @@ El PRD describe ingeniería complementaria para casos donde el consumo semántic
 | E-33 | La administración de la fuente PostgreSQL reutiliza el scope existente `sources:write`. | Conversación actual, 2026-11-02 | Decisión humana de autorización | Alta |
 | E-34 | En el laboratorio, los registros de ejecución y la evidencia de fallas saneada se conservan sin vencimiento. | Conversación actual, 2026-11-02 | Decisión humana de retención | Alta |
 
+| E-35 | Toda la configuracion, ejecucion, checkpoint, version, linaje y registro de datasets preparados de US-007 se persisten solo en PostgreSQL. El catalogo existente combina sus registros SQLite actuales con los preparados PostgreSQL durante las lecturas; no se duplica una publicacion en ambas bases. | Conversacion actual, 2026-11-14 | Decision humana de persistencia/catalogo | Alta |
+| E-36 | Una falla de polling pausa el pipeline; ticks posteriores omiten el rango retenido hasta que Data Engineering haga un reintento manual exitoso. | Conversacion actual, 2026-11-14 | Decision humana de operacion | Alta |
+
+| E-37 | Cada lote CDC contiene source_position en todos sus eventos o en ninguno. Si mezcla eventos con y sin posicion, se rechaza por calidad antes de materializar. | Conversacion actual, 2026-11-14 | Decision humana de orden CDC | Alta |
+
 ## 5. Hechos confirmados
 
 - US-007 está en borrador y su preparación figura CONDITIONAL [US-007 §§1, 17].
@@ -169,6 +174,9 @@ El PRD describe ingeniería complementaria para casos donde el consumo semántic
 | Estados y reintentos: E-26; intentos manuales sin máximo fijo, E-27 | Usuario | E-26/E-27 | Confirmada |
 
 
+| Persistencia US-007: PostgreSQL es autoridad unica para pipelines, runs, checkpoints, versiones, linaje y entradas preparadas; el catalogo combina registros SQLite existentes y preparados PostgreSQL solo durante lecturas | Usuario | E-35, conversacion actual, 2026-11-14 | Confirmada; sin doble escritura |
+| Orden de lotes CDC: todos los eventos del lote incluyen source_position o ninguno; lotes mixtos se rechazan por calidad | Usuario | E-37, conversacion actual, 2026-11-14 | Confirmada |
+| Polling tras falla: pausar pipeline y omitir el rango en ticks posteriores hasta reintento manual exitoso | Usuario | E-36, conversacion actual, 2026-11-14 | Confirmada |
 | Validación funcional del pack | Responsable funcional por asignar | Pendiente | Abierta |
 
 ## 11. Knowledge Candidates con provenance
@@ -180,4 +188,4 @@ El PRD describe ingeniería complementaria para casos donde el consumo semántic
 
 ## 12. Handoff para el siguiente rol
 
-El diseño backend está en `docs/superpowers/specs/2026-11-02-us-007-backend-cdc-design.md` y pendiente de aprobación humana. Las decisiones humanas de alcance y las respuestas al Builder Check están incorporadas; el contrato SQL CDC y metadatos concretos de catálogo quedan como propuestas de diseño. La UI Stitch se difiere al siguiente incremento. No se implementó código.
+El diseno backend y el plan actualizados estan en `docs/superpowers/specs/2026-11-02-us-007-backend-cdc-design.md` y `docs/superpowers/plans/2026-11-02-us-007-backend-cdc-plan.md`; ambos siguen pendientes de aprobacion humana. Se incorporaron PostgreSQL como autoridad unica de US-007, la proyeccion de catalogo por lectura combinada, la pausa de polling tras falla y el rechazo por calidad de lotes que mezclan posiciones CDC. El contrato SQL CDC y la configuracion concreta de credenciales de laboratorio permanecen como propuestas para revision. La UI Stitch se difiere al siguiente incremento. No se implemento codigo.

@@ -8,6 +8,11 @@ generated:
 
 # Changelog
 
+## 2026-11-14
+
+- US-007: el usuario aprobó PostgreSQL como única autoridad de persistencia para pipelines, ejecuciones, checkpoints, versiones, linaje y catálogo de datasets preparados. El endpoint existente combina las entradas SQLite actuales con las entradas preparadas PostgreSQL durante la lectura, sin doble escritura. También aprobó pausar el polling tras una falla y omitir ticks posteriores hasta un reintento manual exitoso. Diseño y plan actualizados para revisión; sin cambios de código.
+- US-007: el usuario aprobó rechazar por calidad los lotes que mezclen eventos con `source_position` y sin ella. Los lotes homogéneos se ordenan por posición o, si todos carecen de ella, por fecha/hora; los empates de fecha/hora se conservan como ambiguos. Diseño y plan actualizados; sin cambios de código.
+
 ## 2026-11-04
 
 - US-008: el usuario asignó a Data Engineering la aceptación de la evaluación Medallion por dataset y acordó un enfoque híbrido: aplicar criterios cualitativos documentados inicialmente y establecer umbrales cuantitativos progresivamente cuando exista evidencia operativa suficiente. Los umbrales no bloquean el primer alcance; la selección de datasets representativos sigue pendiente. Historia actualizada y permanece CONDITIONAL hasta seleccionar esos datasets y completar su validación.
