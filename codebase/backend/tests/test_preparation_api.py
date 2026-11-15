@@ -15,7 +15,7 @@ def scoped(client, scopes, tenant="demo-global"):
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_pipeline_creation_registers_prepared_catalog_entry_and_enforces_scopes(client):
+def test_pipeline_creation_registers_prepared_catalog_entry_and_enforces_scopes(client, monkeypatch):
     origin = seed_observation(client.app.state.database)
     with client.app.state.database.connect(write=True) as connection:
         connection.execute("UPDATE sources SET connection=? WHERE tenant_id=? AND id=?",
@@ -39,10 +39,14 @@ def test_pipeline_creation_registers_prepared_catalog_entry_and_enforces_scopes(
                          json=payload | {"preparedDatasetName": "Ventas preparadas auditoría"}, headers=admin)
     assert second.status_code == 201, second.text
     assert second.json()["preparedDatasetId"] != pipeline["preparedDatasetId"]
+    monkeypatch.setattr(client.app.state.datasets, "materialization_projector", lambda user, ids: {
+        dataset_id: {"schema": "prepared", "relation": "current_sales_state"} for dataset_id in ids
+    })
     catalog = client.get("/api/v1/datasets/" + pipeline["preparedDatasetId"], headers=admin)
     assert catalog.status_code == 200
     assert catalog.json()["kind"] == "prepared"
     assert catalog.json()["registrationStatus"] == "draft"
+    assert catalog.json()["materialization"]["latestVersionId"] is None
     assert client.get("/api/v1/preparation-pipelines", headers=login(client)).status_code == 403
     listed_ids = {item["id"] for item in client.get("/api/v1/preparation-pipelines", headers=admin).json()["items"]}
     assert listed_ids == {pipeline["id"], second.json()["id"]}

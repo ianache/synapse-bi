@@ -61,11 +61,11 @@ class PreparationPipeline(DTO):
 
 class PreparationRunCreate(DTO):
     pipeline_id: str = Field(min_length=1, max_length=128)
-    events: list[dict[str, Any]] = Field(min_length=1, max_length=1000)
+    events: list[dict[str, Any]] = Field(min_length=1, max_length=500)
 
 
 class PreparationRetryCreate(DTO):
-    events: list[dict[str, Any]] | None = Field(default=None, min_length=1, max_length=1000)
+    events: list[dict[str, Any]] | None = Field(default=None, min_length=1, max_length=500)
 
 
 class PreparedVersion(DTO):
@@ -97,6 +97,8 @@ class PreparationRun(DTO):
     delete_count: int = Field(ge=0)
     rejected_count: int = Field(ge=0)
     quality_results: dict[str, Any]
+    source_range_start: int | None = None
+    source_range_end: int | None = None
     published_version: PreparedVersion | None = None
     latest_successful_version: PreparedVersion | None = None
     retry_of_run_id: str | None = None

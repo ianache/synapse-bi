@@ -2,9 +2,11 @@
 from datetime import datetime, timezone
 import json
 import logging
+from contextlib import contextmanager
 from uuid import uuid4
 
 from ..auth import Principal
+from ..datasets.schemas import Materialization
 from ..errors import ApiError
 from ..sources import ConnectionInput
 from .processor import apply_events_to_state, validate_and_order_events
@@ -40,6 +42,17 @@ class PreparationService:
         except (ValueError, TypeError):
             raise ApiError(503, "source_configuration_unavailable", "La configuraciÃ³n de la fuente no estÃ¡ disponible.") from None
         return pipeline, source_config, source
+
+    @contextmanager
+    def _pipeline_lock(self, user, pipeline, source_config):
+        """Serialize manual and poll execution across workers for one tenant pipeline."""
+        lock_key = f"{user.tenant}:{pipeline.id}"
+        with self.writer(self.settings, source_config) as connection:
+            connection.execute("SELECT pg_advisory_lock(hashtextextended(%s,0))", (lock_key,))
+            try:
+                yield
+            finally:
+                connection.execute("SELECT pg_advisory_unlock(hashtextextended(%s,0))", (lock_key,))
 
     @staticmethod
     def _version(row):
@@ -116,6 +129,7 @@ class PreparationService:
                         endedAt=ended, eventCount=event_count, insertCount=validation.insert_count,
                         updateCount=validation.update_count, deleteCount=validation.delete_count,
                         rejectedCount=validation.rejected_count, qualityResults=summary,
+                        sourceRangeStart=range_start, sourceRangeEnd=range_end,
                         latestSuccessfulVersion=self._version(previous), retryOfRunId=retry_of,
                         errorCode="cdc_quality_rejected", sanitizedError=quality_error)
 
@@ -169,6 +183,7 @@ class PreparationService:
                     processId=pipeline.process_id, origin=origin, status="published", startedAt=started, endedAt=ended,
                     eventCount=event_count, insertCount=validation.insert_count, updateCount=validation.update_count,
                     deleteCount=validation.delete_count, rejectedCount=0, qualityResults=summary,
+                    sourceRangeStart=range_start, sourceRangeEnd=range_end,
                     publishedVersion=self._version(version_row), latestSuccessfulVersion=self._version(version_row),
                     retryOfRunId=retry_of)
         except Exception as error:
@@ -203,7 +218,8 @@ class PreparationService:
                     id=run_id, pipelineId=pipeline.id, datasetId=pipeline.prepared_dataset_id,
                     processId=pipeline.process_id, origin=origin, status="technical_failure", startedAt=started,
                     endedAt=ended, eventCount=event_count, insertCount=0, updateCount=0, deleteCount=0,
-                    rejectedCount=event_count, qualityResults={}, latestSuccessfulVersion=self._version(previous),
+                    rejectedCount=event_count, qualityResults={}, sourceRangeStart=range_start,
+                    sourceRangeEnd=range_end, latestSuccessfulVersion=self._version(previous),
                     retryOfRunId=retry_of, errorCode=code, sanitizedError=message)
         except Exception as error:
             # Do not log exception text, payload values, connection strings, or credentials.
@@ -217,19 +233,31 @@ class PreparationService:
         pipeline, source_config, _ = self._context(user, pipeline_id)
         if not raw_events:
             raise ApiError(422, "empty_cdc_batch", "EnvÃ­a al menos un evento CDC.")
-        return self._execute(user, pipeline, source_config, raw_events, request_id, "manual", retry_of=retry_of)
+        with self._pipeline_lock(user, pipeline, source_config):
+            return self._execute(user, pipeline, source_config, raw_events, request_id, "manual", retry_of=retry_of)
 
-    def poll_pipeline(self, user: Principal, pipeline_id, request_id, *, retry_of=None):
+    def poll_pipeline(self, user: Principal, pipeline_id, request_id, *, retry_of=None, through_capture=None):
         pipeline, source_config, source = self._context(user, pipeline_id)
+        with self._pipeline_lock(user, pipeline, source_config):
+            return self._poll_pipeline_locked(user, pipeline, source_config, source, request_id,
+                                              retry_of=retry_of, through_capture=through_capture)
+
+    def _poll_pipeline_locked(self, user, pipeline, source_config, source, request_id, *, retry_of=None, through_capture=None):
         run_id, started = str(uuid4()), _now()
         try:
             with self.writer(self.settings, source_config) as connection:
                 connection.execute("SELECT set_config('app.tenant_id',%s,true)", (user.tenant,))
+                latest_poll = connection.execute("""SELECT status FROM prepared.preparation_runs
+                    WHERE tenant_id=%s AND pipeline_id=%s AND origin='poll'
+                    ORDER BY started_at DESC,run_id DESC LIMIT 1""", (user.tenant, pipeline.id)).fetchone()
+                if retry_of is None and latest_poll and latest_poll["status"] in {"quality_rejected", "technical_failure"}:
+                    return None
                 row = connection.execute("SELECT capture_position FROM prepared.pipeline_checkpoints WHERE tenant_id=%s AND pipeline_id=%s",
                                          (user.tenant, pipeline.id)).fetchone()
                 checkpoint = int(row["capture_position"]) if row else 0
             source_body, password = self.sources.stored_connection(source)
-            rows = self.reader(self.settings, source_body, password, user.tenant, checkpoint, limit=1000)
+            rows = self.reader(self.settings, source_body, password, user.tenant, checkpoint,
+                               through_capture=through_capture, limit=1000)
             if not rows:
                 return None
             capture_ids = [int(row["capture_id"]) for row in rows]
@@ -254,7 +282,8 @@ class PreparationService:
             processId=pipeline.process_id, origin=row["origin"], status=row["status"], startedAt=row["started_at"],
             endedAt=row["ended_at"], eventCount=row["event_count"], insertCount=row["insert_count"],
             updateCount=row["update_count"], deleteCount=row["delete_count"], rejectedCount=row["rejected_count"],
-            qualityResults=row["quality_results"], publishedVersion=self._version(published),
+            qualityResults=row["quality_results"], sourceRangeStart=row["source_range_start"],
+            sourceRangeEnd=row["source_range_end"], publishedVersion=self._version(published),
             latestSuccessfulVersion=self._version(latest), retryOfRunId=row["retry_of_run_id"],
             errorCode=row["error_code"], sanitizedError=row["sanitized_error"])
 
@@ -263,16 +292,27 @@ class PreparationService:
             repository = PreparationRepository(connection, user)
             pipelines = [repository.get(pipeline_id)] if pipeline_id else repository.list()
         records = []
+        total = 0
+        fetch_limit = offset + limit
         for pipeline in pipelines:
             _, source_config, _ = self._context(user, pipeline.id)
             with self.writer(self.settings, source_config) as connection:
                 connection.execute("SELECT set_config('app.tenant_id',%s,true)", (user.tenant,))
-                rows = connection.execute("SELECT * FROM prepared.preparation_runs WHERE tenant_id=%s AND pipeline_id=%s ORDER BY started_at DESC",
-                                          (user.tenant, pipeline.id)).fetchall()
-                records.extend((row["started_at"], self._run_from_row(connection, row, pipeline)) for row in rows)
-        records.sort(key=lambda item: item[0], reverse=True)
-        page = records[offset:offset+limit]
-        return {"items": [item[1] for item in page], "total": len(records), "limit": limit, "offset": offset}
+                total += connection.execute("SELECT count(*) AS total FROM prepared.preparation_runs WHERE tenant_id=%s AND pipeline_id=%s",
+                                            (user.tenant, pipeline.id)).fetchone()["total"]
+                rows = connection.execute("""SELECT * FROM prepared.preparation_runs
+                    WHERE tenant_id=%s AND pipeline_id=%s ORDER BY started_at DESC,run_id DESC LIMIT %s""",
+                    (user.tenant, pipeline.id, fetch_limit)).fetchall()
+                records.extend((row["started_at"], pipeline.id, row["run_id"], dict(row), pipeline) for row in rows)
+        records.sort(key=lambda item: (item[0], item[1], item[2]), reverse=True)
+        selected = records[offset:offset + limit]
+        items = []
+        for _, _, _, row, pipeline in selected:
+            _, source_config, _ = self._context(user, pipeline.id)
+            with self.writer(self.settings, source_config) as connection:
+                connection.execute("SELECT set_config('app.tenant_id',%s,true)", (user.tenant,))
+                items.append(self._run_from_row(connection, row, pipeline))
+        return {"items": items, "total": total, "limit": limit, "offset": offset}
 
     def get_run(self, user, run_id):
         with self.db.connect() as connection:
@@ -295,7 +335,8 @@ class PreparationService:
             if not events:
                 raise ApiError(422, "retry_events_required", "El reintento manual requiere reenviar el lote CDC.")
             return self.execute_manual(user, previous.pipeline_id, events, request_id, retry_of=run_id)
-        return self.poll_pipeline(user, previous.pipeline_id, request_id, retry_of=run_id)
+        return self.poll_pipeline(user, previous.pipeline_id, request_id, retry_of=run_id,
+                                  through_capture=previous.source_range_end)
 
     def _dataset_pipeline(self, user, dataset_id):
         with self.db.connect() as connection:
@@ -303,6 +344,27 @@ class PreparationService:
                 if pipeline.prepared_dataset_id == dataset_id:
                     return pipeline
         raise ApiError(404, "prepared_dataset_not_found", "Dataset preparado no disponible.")
+
+    def project_materialization(self, user, dataset_ids):
+        """Project PostgreSQL publication state onto tenant-scoped SQLite catalog rows."""
+        with self.db.connect() as connection:
+            pipelines = {pipeline.prepared_dataset_id: pipeline
+                         for pipeline in PreparationRepository(connection, user).list()
+                         if pipeline.prepared_dataset_id in set(dataset_ids)}
+        projections = {}
+        for dataset_id, pipeline in pipelines.items():
+            _, source_config, _ = self._context(user, pipeline.id)
+            with self.writer(self.settings, source_config) as connection:
+                connection.execute("SELECT set_config('app.tenant_id',%s,true)", (user.tenant,))
+                latest = connection.execute("""SELECT version_id,created_at FROM prepared.dataset_versions
+                    WHERE tenant_id=%s AND dataset_id=%s ORDER BY version_number DESC LIMIT 1""",
+                    (user.tenant, dataset_id)).fetchone()
+            projections[dataset_id] = Materialization(
+                schema="prepared", relation="current_sales_state",
+                latestVersionId=latest["version_id"] if latest else None,
+                latestPublishedAt=latest["created_at"] if latest else None,
+            )
+        return projections
 
     def list_versions(self, user, dataset_id, limit, offset):
         pipeline = self._dataset_pipeline(user, dataset_id)

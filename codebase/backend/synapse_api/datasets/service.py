@@ -12,7 +12,7 @@ from ..errors import ApiError
 from .observations import resolve_origins
 from .policy import normalize_name, validate_registration
 from .repository import DatasetRepository
-from .schemas import Dataset, DatasetSummary, DatasetPage, DatasetFilters, SaveDataset
+from .schemas import Dataset, DatasetSummary, DatasetPage, DatasetFilters, Materialization, SaveDataset
 
 
 def _authorize(user, *, write=False):
@@ -31,8 +31,20 @@ def _fingerprint(body, resolved):
 
 
 class DatasetService:
-    def __init__(self, database: Database):
+    def __init__(self, database: Database, materialization_projector=None):
         self.db = database
+        self.materialization_projector = materialization_projector
+
+    def _project_materialization(self, user, datasets):
+        if self.materialization_projector is None:
+            return datasets
+        prepared_ids = [item.id for item in datasets if item.kind == "prepared"]
+        if not prepared_ids:
+            return datasets
+        projections = self.materialization_projector(user, prepared_ids)
+        return [item.model_copy(update={"materialization": Materialization.model_validate(projections[item.id])
+                                          if item.id in projections else None})
+                if item.kind == "prepared" else item for item in datasets]
 
     def create(self, user: Principal, body: SaveDataset, key: str, request_id: str) -> Dataset:
         _authorize(user, write=True)
@@ -67,7 +79,8 @@ class DatasetService:
         with self.db.connect() as conn:
             conn.execute("BEGIN")  # One WAL snapshot for row, columns, inputs and source version.
             repository = DatasetRepository(conn, user)
-            return repository._dto(repository._row(dataset_id))
+            result = repository._dto(repository._row(dataset_id))
+        return self._project_materialization(user, [result])[0]
 
     def list(self, user: Principal, filters: DatasetFilters) -> DatasetPage:
         _authorize(user)
@@ -80,8 +93,10 @@ class DatasetService:
                        and (filters.kind is None or item.kind == filters.kind)
                        and (filters.registration_status is None or item.registration_status == filters.registration_status)
                        and (filters.completeness is None or item.completeness == filters.completeness)]
-            return DatasetPage(items=[DatasetSummary.model_validate(item.model_dump(include=set(DatasetSummary.model_fields)))
-                                      for item in matches[filters.offset:filters.offset + filters.limit]],
+            page = [DatasetSummary.model_validate(item.model_dump(include=set(DatasetSummary.model_fields)))
+                    for item in matches[filters.offset:filters.offset + filters.limit]]
+            page = self._project_materialization(user, page)
+            return DatasetPage(items=page,
                                total=len(matches), limit=filters.limit, offset=filters.offset)
 
     def update(self, user: Principal, dataset_id: str, body: SaveDataset, if_match: str | None, request_id: str) -> Dataset:

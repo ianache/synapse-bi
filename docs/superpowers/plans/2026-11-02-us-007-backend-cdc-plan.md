@@ -4,6 +4,8 @@
 
 **Goal:** Materialize tenant-scoped, immutable prepared sales dataset versions from manual or one-minute PostgreSQL CDC ingestion, preserving complete history, current state, run evidence, catalog visibility, and lineage.
 
+**Execution update (2026-11-14):** The first implementation pass for the persistence-alignment gaps is recorded in [`backend-manual-validation.md`](../../ux/us-007/backend-manual-validation.md). PostgreSQL integration acceptance and the remaining unchecked task criteria are still pending; do not treat this plan as fully complete.
+
 **Architecture:** Continue the existing split. SQLite remains authoritative for pipeline configuration and prepared-dataset catalog metadata, using `preparation_pipelines` and `dataset_registry`. PostgreSQL remains authoritative for CDC runs, checkpoints, immutable versions, event history, and versioned current state. Pipeline creation writes the pipeline and its catalog record in one SQLite transaction. Each CDC attempt, publication, and checkpoint update stays within one PostgreSQL transaction. Dataset reads may add a read-only materialization projection from PostgreSQL; do not mirror catalog metadata or pipeline configuration into PostgreSQL.
 
 **Tech Stack:** Python, FastAPI, Pydantic, SQLite for source/input registries, pipeline configuration, and dataset catalog; PostgreSQL 18 and psycopg for CDC execution and prepared versions; Docker Compose.

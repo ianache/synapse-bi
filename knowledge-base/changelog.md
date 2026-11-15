@@ -10,6 +10,8 @@ generated:
 
 ## 2026-11-14
 
+- US-007 implementation: PostgreSQL materialization projection on SQLite catalog reads, bounded poll retry ranges, shared per-pipeline advisory locking, bounded run pagination, and 500-event API batch limits. Backend suite: 234 passed, 2 PostgreSQL integrations skipped because local integration configuration was absent; CDC acceptance remains pending.
+
 - US-007: decisión inicial del 14-11: PostgreSQL como autoridad única para pipelines, ejecuciones, checkpoints, versiones, linaje y catálogo preparado; el catálogo combinaba entradas SQLite y PostgreSQL durante la lectura. Esta dirección de persistencia fue reemplazada por la instrucción posterior del mismo día; la decisión de pausar el polling tras una falla se mantiene.
 - US-007: el usuario aprobó rechazar por calidad los lotes que mezclen eventos con `source_position` y sin ella. Los lotes homogéneos se ordenan por posición o, si todos carecen de ella, por fecha/hora; los empates de fecha/hora se conservan como ambiguos. Diseño y plan actualizados; sin cambios de código.
 - US-007: el código integrado desde `origin/master` conserva SQLite para configuración y catálogo, y PostgreSQL para ejecuciones y datos CDC preparados; esta división coincide con la instrucción más reciente. La proyección de materialización y el reintento acotado al rango fallido siguen en el plan.

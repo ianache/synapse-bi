@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, Literal
 import unicodedata
 
@@ -121,6 +122,13 @@ class DatasetLineage(DTO):
     process_reference: str | None = None
 
 
+class Materialization(DTO):
+    schema_name: str = Field(default="prepared", alias="schema")
+    relation: str = "current_sales_state"
+    latest_version_id: str | None = None
+    latest_published_at: datetime | None = None
+
+
 class DatasetSummary(DTO):
     id: str
     name: str
@@ -130,6 +138,7 @@ class DatasetSummary(DTO):
     missing_metadata: list[str]
     governance_validation: Literal["pending"] = "pending"
     origin: DatasetOrigin
+    materialization: Materialization | None = None
     version: int = Field(ge=1)
     created_at: str
     updated_at: str

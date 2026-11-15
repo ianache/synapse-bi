@@ -80,3 +80,16 @@ El historial conserva altas, cambios y bajas. El estado vigente refleja la últi
 - El polling está deshabilitado en producción y usa bloqueo advisory para evitar que instancias paralelas procesen el mismo pipeline a la vez.
 
 La automatización verifica los contratos y el aislamiento. La aceptación del backend en la aplicación se completa mediante pruebas manuales del entorno; esta guía no certifica fidelidad visual de UI.
+
+## Resultado de validaci?n de implementaci?n (2026-11-14)
+
+Se implement? la proyecci?n de versi?n PostgreSQL en las lecturas del cat?logo SQLite; retries de polling limitados por `source_range_end`; bloqueo advisory compartido por tenant/pipeline para ejecuciones manuales y polling; paginaci?n de runs con consultas limitadas a `offset + limit` por pipeline; y m?ximo de 500 eventos por lote API.
+
+Desde `codebase/backend`:
+
+```text
+python -m pytest
+234 passed, 2 skipped in 51.90s
+```
+
+Los dos casos omitidos son integraciones PostgreSQL opt-in. No estaban configuradas `US007_TEST_POSTGRES_PORT` ni las rutas locales de secretos reader/writer. La verificaci?n Docker del caso de estudio y la aceptaci?n CDC contra una base nueva siguen pendientes: los cuatro archivos locales de secretos no existen y Docker no permite conectar al pipe `docker_engine` (permission denied). No se generaron secretos ni se modific? Docker. La gu?a no declara completo el plan de implementaci?n.
