@@ -10,12 +10,23 @@ generated:
 
 ## Requirement Context Packs
 
+- [RCP-005 — Ingeniería de datos complementaria US-007](/knowledge-base/requirements/context-packs/RCP-005-us-007-ingenieria-complementaria.md) — descubrimiento y decisiones abiertas.
+
+- [RCP-004 — Acceso real y autorización por KPI para US-006](/knowledge-base/requirements/context-packs/RCP-004-us-006-acceso-real-kpi.md) — alcance local y decisiones de grants aprobados; pendientes productivos visibles.
+- [RCP-003 — Contexto inicial del dashboard semántico US-006](/knowledge-base/requirements/context-packs/RCP-003-us-006-dashboard-semantico.md)
 - [RCP-001 - Contexto de requisitos de BI Analytics Platform v1.1](/knowledge-base/requirements/context-packs/RCP-001-bi-analytics-platform-v1-1.md)
 - [RCP-002 — Definición semántica configurable US-003](/knowledge-base/requirements/context-packs/RCP-002-us-003-definicion-semantica.md)
   - [Decisiones D01–D07](/docs/ux/us-003/decisions.md)
   - [Diseño US-003](/docs/superpowers/specs/2026-10-16-us-003-semantic-catalog-design.md)
   - [Plan y alcance del incremento](/docs/superpowers/plans/2026-10-16-us-003-semantic-catalog-plan.md)
   - [UX, evidencia y prueba manual local](/docs/ux/us-003/README.md)
+
+## Architecture Context Packs
+
+- [ACP-002 — Identidad real y acceso por KPI para US-006](/knowledge-base/architecture/context-packs/ACP-002-us-006-identidad-acceso-kpi.md) — borrador para incremento local; no representa aprobación productiva.
+- [ACP-001 — Contexto de arquitectura para piloto de serving Gold US-005](/knowledge-base/architecture/context-packs/ACP-001-us-005-serving-gold-pilot.md)
+  - [Diseño para revisión: piloto PostgreSQL Gold de US-005](/docs/superpowers/specs/2026-10-18-us-005-postgres-gold-pilot-design.md)
+  - [Plan de implementación para revisión: piloto US-005 PostgreSQL Gold](/docs/superpowers/plans/2026-10-18-us-005-postgres-gold-pilot-plan.md)
 
 ## User Stories
 
@@ -26,9 +37,12 @@ generated:
   - [Primera entrega — Modelos y borradores versionados: especificación para revisión](/docs/superpowers/specs/2026-10-17-us-004-model-versions-design.md)
   - [Pantallas Stitch US-004 — cuatro vistas desktop y diferencias pendientes](/docs/ux/us-004/README.md)
   - [Plan de implementación primera entrega US-004 — para revisión](/docs/superpowers/plans/2026-10-17-us-004-model-versions-plan.md)
-- [US-005 — Resolver consulta semántica: Q1 resuelta para laboratorio; gates productivos pendientes](/knowledge-base/requirements/user-stories/US-005-resolver-consulta-semantica.md)
+- [US-005 — Resolver consulta semántica: piloto técnico acordado; gates productivos pendientes](/knowledge-base/requirements/user-stories/US-005-resolver-consulta-semantica.md)
   - [Incremento de laboratorio: verificación y prueba manual de metadatos ausentes](/docs/ux/us-005/verification.md)
 - [US-006 — Componer dashboard semántico](/knowledge-base/requirements/user-stories/US-006-componer-dashboard-semantico.md)
+  - [Diseño aprobado: identidad y autorización por KPI](/docs/superpowers/specs/2026-10-30-us-006-identidad-y-acceso-kpi-design.md)
+  - [Plan de implementación para revisión: identidad y acceso por KPI](/docs/superpowers/plans/2026-10-30-us-006-identidad-y-acceso-kpi-plan.md)
+  - [Propuestas Stitch US-006 y discrepancias](/docs/ux/us-006/README.md)
 - [US-007 — Ejecutar ingeniería de datos complementaria](/knowledge-base/requirements/user-stories/US-007-ejecutar-ingenieria-de-datos-complementaria.md)
 - [US-008 — Evaluar Medallion por dataset](/knowledge-base/requirements/user-stories/US-008-evaluar-medallion-por-dataset.md)
 - [US-009 — Aplicar aislamiento por tenant](/knowledge-base/requirements/user-stories/US-009-aplicar-aislamiento-por-tenant.md)

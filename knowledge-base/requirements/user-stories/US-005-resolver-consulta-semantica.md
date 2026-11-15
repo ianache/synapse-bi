@@ -128,7 +128,7 @@ Escenario: Consultar en el laboratorio con controles no evaluados o metadatos au
 | ID | Pregunta | Responsable | Prioridad | Bloquea | Estado |
 |---|---|---|---|---|---|
 | US-005-Q1 | Para laboratorio, ¿qué hacer con calidad/frescura no evaluadas, metadatos ausentes y permisos no resueltos? | Producto / Seguridad / Data Governance | Alta | No para laboratorio; sí para producción | Resuelta para laboratorio; decisión humana registrada abajo |
-| US-005-Q2 | ¿Cuál es el primer workload productivo y qué clases, controles, umbrales de calidad/frescura y objetivos de servicio se aprobarán para él? | Producto / Business Owner / Data Steward / Seguridad | Alta | Sí para producción | Abierta |
+| US-005-Q2 | ¿Cuál es el primer workload productivo y qué clase, controles, umbrales por dataset y objetivos de servicio se aprobarán para él? | Producto / Business Owner / Data Steward / Seguridad | Alta | Sí para producción | Parcial: alcance del piloto resuelto; workload y objetivos productivos abiertos |
 
 ### Decisión humana registrada para US-005-Q1
 
@@ -139,6 +139,15 @@ El 2026-10-18, `human:ianache` aprobó la respuesta **sólo para el alcance de l
 - Todo metadato ausente, incluido linaje, se señala como no disponible; no se inventa ni impide por sí solo la consulta de laboratorio.
 - La autorización deniega por defecto: 403 por scope insuficiente en recursos visibles y 404 genérico para recursos ocultos o fuera del tenant; no se devuelven datos en ninguno de esos casos.
 - Esta decisión no aprueba BRC-001 BR-009 ni fija política de producción. Workload real, objetivos de servicio y umbrales por clase quedan en US-005-Q2.
+
+### Acuerdo humano de alcance del siguiente incremento
+
+El 2026-10-18, `human:ianache` eligió estas opciones para acotar el siguiente incremento:
+
+- El piloto técnico usará el caso sintético de ventas en PostgreSQL. Es un workload de laboratorio y no se considera el primer workload productivo.
+- Antes de habilitar un dataset para consumo productivo, deberá contar con una política aprobada para ese dataset. No se establecerán umbrales globales provisionales.
+- El incremento medirá una línea base sintética de latencia y capacidad. Sus resultados serán observaciones del laboratorio, no un SLA ni objetivos de producción.
+- El alcance no habilita consumo de datos productivos ni define el workload productivo, los umbrales numéricos por dataset o los objetivos de servicio. Esos acuerdos siguen bloqueando la salida productiva y se mantienen en US-005-Q2.
 
 ## 13. Evidencia y trazabilidad
 
@@ -185,10 +194,10 @@ Evidencia compartida: `source_type: document`, `observed_at: 2026-10-16T01:22:23
 ## 17. Preparación y validación
 
 - **Estado:** CONDITIONAL
-- **Motivo:** US-005-Q1 resuelta para laboratorio; workload real, umbrales por clase, objetivos de servicio y política productiva siguen pendientes en US-005-Q2.
+- **Motivo:** US-005-Q1 resuelta para laboratorio. El alcance del siguiente piloto está acordado; workload real, umbrales por dataset y objetivos de servicio productivos siguen pendientes en US-005-Q2.
 - **Bloqueos de entrega:** dependencias de publicación y dataset autorizados; US-005-Q2 bloquea la entrega productiva, no el laboratorio sintético acotado.
 - **Propuesta de división (si no es pequeña):** separar consulta base y política de confiabilidad al acordar workloads.
 - **Siguiente rol o Skill:** Producto / Seguridad / Data Governance.
-- **Decisión humana requerida:** aprobar el workload productivo inicial, sus controles/umbrales por clase y objetivos de servicio.
+- **Decisión humana requerida:** seleccionar el workload productivo inicial y aprobar sus controles/umbrales por dataset y objetivos de servicio.
 - **Validación:** Pendiente · Responsable: Producto · Fecha: —
 - **Evidencia del incremento de laboratorio:** [implementación y prueba manual](/docs/ux/us-005/verification.md). La verificación técnica de US-005-Q1 no equivale a aceptación humana de la historia ni resuelve US-005-Q2.

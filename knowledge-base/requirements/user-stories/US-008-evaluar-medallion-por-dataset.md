@@ -6,7 +6,7 @@ tags: [user-story, plataforma, medallion, data-engineering]
 status: draft
 generated:
   by: "af-user-story-refiner/2.0"
-  at: "2026-10-16T01:22:23-05:00"
+  at: "2026-11-04T00:00:00-05:00"
 sources:
   - id: PRD-BI-ANALYTICS-V1.1
     resource: /intents/PRD.md
@@ -24,7 +24,7 @@ sources:
 | Épica / capacidad | Preparación de datos, FR-008 |
 | Horizonte / release | Por definir; datasets MVP sin elegir |
 | Actor | [Data Engineering](../../../intents/PRD.md) (RCP-001 §8) |
-| Responsable de negocio (PO) | Owner/decisor por definir; no inferir aprobación de roles propuestos |
+| Responsable de negocio (PO) | Data Engineering acepta la evaluación, por decisión del usuario del 2026-11-04; persona responsable por asignar |
 | Prioridad | Should propuesta: evita preparación sin valor; decide PO |
 | Estimación |  |
 | Dependencias | US-002; US-007 si se activa preparación |
@@ -42,8 +42,8 @@ sources:
 
 ## 4. Alcance
 
-- **Incluye:** aplicar criterios documentados para decidir activación por dataset.
-- **Excluye:** umbrales numéricos y aprobación del decisor, pendientes.
+- **Incluye:** aplicar criterios cualitativos documentados por dataset; registrar mediciones cuantitativas cuando estén disponibles y definir umbrales gradualmente con evidencia operativa.
+- **Excluye:** umbrales cuantitativos universales fijados sin evidencia; aprobación externa a Data Engineering.
 
 ## 5. Criterios de aceptación
 
@@ -53,17 +53,28 @@ sources:
 Escenario: Evaluar preparación por dataset
   Dado un dataset candidato
   Cuando Data Engineering evalúa replay/historización, CDC, calidad/reconciliación, reutilización, volumen/concurrencia, desacoplamiento o auditoría/retención
-  Entonces documenta la necesidad aplicable antes de activar Medallion
+  Entonces documenta los criterios aplicables, la evidencia disponible y la decisión de Data Engineering antes de activar o descartar Medallion
 ```
 
 - **Regla / fuente:** PRD §§10.3–10.5; BRC-001 BR-004.
+
+### AC-2 — Evolucionar criterios cuantitativos con evidencia
+
+```gherkin
+Escenario: Definir umbrales a partir de datos operativos
+  Dado que existen mediciones operativas representativas para un criterio de activación
+  Cuando Data Engineering revisa la evaluación del dataset
+  Entonces documenta los umbrales cuantitativos sustentados por esas mediciones, o registra que aún no hay evidencia suficiente
+```
+
+- **Regla / fuente:** decisión del usuario del 2026-11-04; los valores no se presuponen ni se inventan.
 
 ## 6. Casos negativos y límite
 
 | Caso | Comportamiento esperado | Fuente o pregunta |
 |---|---|---|
 | Dataset pequeño, estable y gobernado sin beneficio de preparación | No activar por simetría o copia | BRC-001 BR-004 |
-| No hay umbral cuantitativo para volumen/concurrencia | Decisión no automatizable con regla disponible | US-008-Q1 |
+| No hay datos operativos representativos para definir un umbral | Aplicar evaluación cualitativa y registrar la brecha; no bloquear por ausencia de un valor numérico inventado | Decisión del usuario del 2026-11-04 |
 
 ## 7. Reglas de negocio aplicables
 
@@ -96,20 +107,20 @@ Escenario: Evaluar preparación por dataset
 - **Depende de:** metadatos del dataset y criterios PRD.
 - **Es prerrequisito de:** US-007 cuando procede preparación.
 - **Supuestos:** no se asume activación de Medallion para todos.
-- **Hipótesis del agente:** registro de razones permite revisar duplicación y valor; validar con Data Engineering.
+- **Decisión humana (2026-11-04):** Data Engineering acepta la evaluación. Aplicar enfoque híbrido: criterios cualitativos desde el inicio y umbrales cuantitativos progresivos cuando exista evidencia operativa suficiente.
 
 ## 12. Preguntas abiertas
 
 | ID | Pregunta | Responsable | Prioridad | Bloquea | Estado |
 |---|---|---|---|---|---|
-| US-008-Q1 | ¿Quién acepta la justificación y qué umbrales/mediciones demuestran volumen, concurrencia o beneficio? | Producto / Data Engineering / Arquitectura | Alta | Sí | Abierta |
+| US-008-Q1 | ¿Qué mediciones y umbrales cuantitativos demuestran volumen, concurrencia o beneficio cuando haya evidencia operativa? | Data Engineering | Media | No para el primer alcance cualitativo; sí para automatizar o normalizar umbrales | Parcial: aceptación asignada a Data Engineering; enfoque híbrido acordado; valores pendientes de evidencia |
 
 ## 13. Evidencia y trazabilidad
 
 | ID | Hallazgo | Fuente | Clasificación | Confianza |
 |---|---|---|---|---|
 | EVD-2026-0003 | Medallion es opcional y responde a criterios de valor | BRC-001 §Evidencia; PRD §§1, 6, 10 | fact | high |
-| EVD-2026-0013 | Aprobador del dataset no ha sido ratificado | BRC-001 §Evidencia | decision | high |
+| EVD-2026-0013 | Aprobador y criterios cuantitativos estaban pendientes antes de la decisión de alcance | BRC-001 §Evidencia | decision | high |
 
 Evidencia compartida: `source_type: document`, `observed_at: 2026-10-16T01:22:23-05:00`, `freshness: current`, `owner: Data Engineering / Producto (por confirmar)`.
 
@@ -121,18 +132,18 @@ Evidencia compartida: `source_type: document`, `observed_at: 2026-10-16T01:22:23
 | Criterio | ¿Cumple? | Justificación |
 |---|---|---|
 | Independiente | Parcial | Requiere registro de dataset. |
-| Negociable | Sí | Evidencia y umbrales por acordar. |
+| Negociable | Sí | Los umbrales evolucionan con la evidencia operativa. |
 | Valiosa | Sí | Evita sobrepreparación. |
-| Estimable | Parcial | Volúmenes/casos no elegidos. |
+| Estimable | Parcial | Requiere elegir datasets representativos para el primer uso. |
 | Pequeña (Small) | Sí | Evaluación acotada por dataset si se fija plantilla. |
-| Testeable | Parcial | Criterios cualitativos; regla de aceptación pendiente. |
+| Testeable | Sí | Se verifica el registro de criterios, evidencia y aceptación; los umbrales se verifican cuando se definan con datos. |
 
 ## 15. Definition of Ready
 
 - [x] Actor/valor y criterios tienen fuentes
-- [ ] Umbrales y decisión final definidos
+- [x] Responsable de aceptación y enfoque híbrido definidos
 - [x] Caso límite de no activar trazado
-- [ ] Pregunta bloqueante cerrada
+- [x] Pregunta bloqueante cerrada para el primer alcance cualitativo
 - [x] Dependencias identificadas
 - [x] Términos enlazados
 - [ ] PO validó
@@ -149,9 +160,9 @@ Evidencia compartida: `source_type: document`, `observed_at: 2026-10-16T01:22:23
 ## 17. Preparación y validación
 
 - **Estado:** CONDITIONAL
-- **Motivo:** proceso de evaluación existe en PRD, pero umbrales y aprobador no están acordados.
-- **Bloqueos de entrega:** US-008-Q1 y datasets representativos.
+- **Motivo:** aceptación asignada a Data Engineering y enfoque híbrido acordado; la selección de datasets representativos y la disponibilidad de datos operativos para umbrales posteriores siguen pendientes.
+- **Bloqueos de entrega:** elegir dataset(s) representativo(s); los umbrales numéricos no bloquean la evaluación cualitativa inicial.
 - **Propuesta de división (si no es pequeña):** No aplica salvo que análisis y activación tengan actores diferentes.
 - **Siguiente rol o Skill:** Producto / Data Engineering.
-- **Decisión humana requerida:** aprobar criterios cuantitativos y autoridad decisora.
-- **Validación:** Pendiente · Responsable: Producto · Fecha: —
+- **Decisión humana requerida:** seleccionar dataset(s) representativo(s); Data Engineering definirá umbrales cuando disponga de evidencia operativa suficiente.
+- **Validación:** Decisiones de aceptación y enfoque híbrido confirmadas por el usuario el 2026-11-04; validación del conjunto de la historia pendiente.

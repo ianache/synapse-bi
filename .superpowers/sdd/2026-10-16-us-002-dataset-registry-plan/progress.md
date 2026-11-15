@@ -53,6 +53,8 @@ Final: fixed normalized replay key loss — normalized-equivalent/reordered sele
 
 ## Final verification and handoff
 
+2026-10-16 — Human validation: user stated «Conforme con validacion de US-002. Continuar con US-003» (UX-US002-D04 in docs/ux/us-002/README.md). Local validation accepted; no productive governance approval implied. Next discovery tracked in RCP-002; do not reopen this implementation or assume semantic rules approved. Deferred >500-column UI notice remains documented.
+
 - uv run --extra test --frozen --cache-dir TEMP/synapse-bi-uv-cache pytest -p no:cacheprovider → 83 passed, 1 opt-in skip; with BI_TEST_POSTGRES=true → 84 passed.
 - npm test -- --maxWorkers=2 --minWorkers=1 --testTimeout=15000 → 22 files / 50 passed.
 - npm run typecheck → exit 0; npm run build → exit 0 (101 modules).
@@ -64,6 +66,26 @@ Final: fixed normalized replay key loss — normalized-equivalent/reordered sele
 - To use with an already-running older backend: first take a consistent SQLite backup and preserve the source key separately; restart the normal API to load v3/routes, reload UI and open /datasets. User-owned services were not stopped.
 
 ## Integration evidence
+
+### Corrección visual de /datasets/nuevo — 2026-10-17
+
+- Confirmación humana: reproducir los dos pasos Stitch ef64675d43b048c0a7ffd9d08a218fd7 y 7e6873489b214335aa81c7be53720410, conservando dos pasos, clasificación libre e identificadores del sistema. Referencias y límites en docs/ux/us-002/registration-visual-conformance.md; mandato ampliado en AGENTS.md.
+- Aplicados tarjetas de tipo, tabla de objetos observados, columnas con restricciones reales y selección total limitada a 500, resumen lateral, tarjetas de identificación/gobierno/frescura/linaje y acciones inferiores. Sin datos ficticios, introspección nueva ni cambios de backend/API. Se conservan borradores, idempotencia, bloqueos y recuperación 412.
+- RED: nueva prueba no encontraba tabla de objetos; GREEN tras implementación. Se corrigieron numeración decorativa en nombres accesibles y contraste detectado por axe, sin debilitar las pruebas.
+- Verificación del rediseño: npm test -- --reporter=dot --maxWorkers=1 --minWorkers=1 --testTimeout=15000 → 78 passed / 32 archivos, 162.74 s. npm run test:datasets → 4 passed, 56.4 s, PostgreSQL de laboratorio; axe/overflow 1440 y 390 px. Typecheck exit 0; build exit 0, 122 módulos, 6.16 s. Backend sin cambios, suite Python no repetida.
+- Cuatro capturas desktop/móvil de origen/metadatos inspeccionadas frente a Stitch y preservadas en screens/c7925c58-01-origin.png, screens/c7925c58-01-origin-mobile.png, screens/c7925c58-02-metadata.png y screens/c7925c58-02-metadata-mobile.png.
+- Revisión independiente read-only de Kepler: sin Critical/Important. Minor aceptado: pie decía borrador también en edición. Regresión añadida, fallo observado y corregido a «Cambios pendientes de guardar»; once pruebas del formulario repetidas → 11 passed, 14.04 s. La suite completa, E2E y capturas anteriores preceden sólo a este ajuste textual. Sin segunda revisión independiente.
+- Aplicación 5186 comprobada con radiogroup y resumen lateral. Servicios del usuario conservados; sin commit/push ni cambios a credenciales/bases manuales. Aceptación visual humana pendiente; no se declara igualdad píxel a píxel.
+
+### Corrección visual Stitch — 2026-10-17
+
+- Usuario autorizó «aplicar» la pantalla `725195c5c57a461d8db992a49f6afc5d`, manteniendo separados registro y completitud. Mandato actualizado en AGENTS.md y referencia/límites en docs/ux/us-002/visual-conformance.md.
+- Se consultaron HTML y captura originales y se compararon capturas reales desktop/móvil. Aplicados resumen de tres tarjetas, filtros, seis columnas, gobierno declarado, Ver ficha y navegación de administración. No se insertaron ejemplos en la base manual ni se modificaron API, backend, permisos o formularios.
+- RED: dos pruebas nuevas detectaron ausencia de resumen/lectura de metadatos; GREEN: seis pruebas específicas aprobadas. Una comprobación de tipos detectó condición redundante en navegación, corregida. El E2E detectó input preparado igual al output (fixture corregido a dim_date, regla intacta) y etiqueta exacta de Registro ausente (reproducida 0 exacto/1 parcial y corregida con aria-label, sin relajar la prueba).
+- Verificación final: frontend **77 passed / 32 archivos**, 183.09 s, un worker/testTimeout 15000; typecheck exit 0; build exit 0, 119 módulos, 5.03 s. Navegador datasets **4 passed**, 57.2 s, PostgreSQL real de laboratorio sólo lectura. Regresión de navegación/catálogo semántico **3 passed**, 46.0 s, puertos aislados 8009/5189.
+- axe/overflow 1440/390 y navegación a ficha verificados. Capturas finales inspeccionadas y preservadas en screens/0ba25bcb-06-stitch-catalog.png y screens/0ba25bcb-06-stitch-catalog-mobile.png. Los datos de las capturas pertenecen exclusivamente a SQLite E2E.
+- Revisión independiente read-only: sin hallazgos Critical, Important ni Minor sustentados; fidelidad visual y resultados comprobados por el agente principal. El backend no cambió; no se repitió su suite Python.
+- Aplicación activa 5186 verificada con resumen y filtro Registro exacto; servicios del usuario no detenidos. Sin commit/push, sin borrado de bases. Aceptación visual humana pendiente; no se declara equivalencia píxel a píxel.
 
 - npm run test:datasets → 3 passed (1.3m), real PostgreSQL (12 tables/4 views; fact_sales 16 columns/6 FK). Lost creation response after commit and retry yields one dataset. New browser context recovers it; registration, stale edit conflict preserving inputs, prepared/Medallion, invalid references, tenant and KPI/snapshot invariance verified.
 - axe: zero violations in origin, metadata, detail, edit and catalog at 1440px and 390px; no document overflow. Keyboard tabs verified. Screenshots without secrets: codebase/test-results/dataset-screens.

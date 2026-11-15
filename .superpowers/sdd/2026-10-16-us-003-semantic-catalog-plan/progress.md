@@ -64,6 +64,24 @@ Ruling: ejecutar frontend en esta máquina con 1 worker y testTimeout CLI 15000 
 
 ## Cierre técnico verificado
 
+### Corrección visual D08 — 2026-10-17
+
+- Usuario reportó falta de conformidad con Stitch `52fd5fb8a6254ff4bf1165579309bc9e`; confirmó corregir e incorporar mandato de apego fiel. Se creó `AGENTS.md` y se registró D08. Referencia y límites en `docs/ux/us-003/visual-conformance.md`.
+- Consultados HTML/captura originales y comparados con capturas reales. Tabla/ficha lateral, dominio, pestañas Dimensiones/Medidas/KPI, encabezados, navegación, origen visible, protección y copia ajustados; datos reales y contratos preservados. Sin equivalencia píxel a píxel ni aceptación visual humana inferida.
+- RED observado: faltaban pestañas/barra de dominio; KPI disparaba consumidores de componente; creación perdía tipo/dominio (componente y KPI). Correcciones comprobadas con pruebas.
+- Verificación final: frontend **75 passed / 32 archivos**, 213.58 s, un worker/15 s; typecheck exit 0; build exit 0, 116 módulos, 10.26 s; navegador **3 passed**, 1.1 min, con 1440/390 px, geometría, axe, teclado, creación contextual, copia, replay, concurrencia e aislamiento. `git diff --check` sin errores.
+- Revisión independiente read-only: 0 Critical; 1 Important (contexto de creación) y 1 Minor (etiqueta consumidores) corregidos. El backend no se modificó ni se repitió su suite en esta corrección visual.
+- Capturas finales inspeccionadas y preservadas en `screens/8fd0e6ad-05-stitch-catalog.png` y `screens/8fd0e6ad-05-stitch-catalog-mobile.png` (artefactos locales ignorados). Los ejemplos se crearon sólo en SQLite E2E aislado.
+- Aplicación activa verificada en 5186: título actualizado, selector y tres pestañas; backend 8006 health ok. Servicios del usuario conservados; nada publicado ni confirmado en commit por esta corrección. Aceptación visual del usuario pendiente.
+
+### Integración local posterior, 2026-10-17
+
+- A petición del usuario, `master` avanzó por fast-forward de `6be7993` a `ef910f3`; sin pull ni push.
+- Antes de integrar: backend 148 passed con PostgreSQL y frontend 70 passed / 31 archivos (179.53 s, un worker/15 s).
+- Desde el repositorio principal integrado: backend 148 passed con PostgreSQL (69.02 s); typecheck y build exit 0 (114 módulos, 1.80 s); navegador US-003 dos casos pasaron.
+- Se conservaron las notas locales de aceptación US-002, su diagrama y las entradas históricas del changelog. Versiones previas de documentos solapados recuperables en stash `c828077a80bed47adbd41fb5e3243473b080b723` (`pre-local-merge-us003-2026-10-17`); no aplicar todo el stash sobre los documentos actuales.
+- Se preservan rama y worktree como respaldo: contienen evidencias locales y junctions a dependencias compartidas. No se borran datos ni se deja un servidor de pruebas permanente. Aceptación manual pendiente.
+
 - Backend final con BI_TEST_POSTGRES=true, temporal corto/nuevo y sin cacheprovider: **148 passed**, 88.09 s. Una advertencia de deprecación Starlette/httpx preexistente; cero fallos/omisiones.
 - Frontend final `npm test -- --reporter=dot --maxWorkers=1 --minWorkers=1 --testTimeout=15000`: **70 passed / 31 files**, 288.92 s. Medallion heredado pasó en 3193 ms. Avisos preexistentes de Vite/localStorage.
 - `npm run typecheck` y `npm run build`: exit 0 tras corregir opción de Testing Library del test ConfirmedUpdate; bundle 114 módulos, build 2.22 s.

@@ -1,0 +1,7 @@
+erDiagram
+    DOMINIO ||--o{ DIMENSION : "agrupa"
+    DOMINIO ||--o{ MEDIDA : "agrupa"
+    DIMENSION }o--o| DATASET : "declara procedencia"
+    MEDIDA }o--o| DATASET : "declara procedencia"
+    DIMENSION o|--o{ DIMENSION : "origina copias"
+    MEDIDA o|--o{ MEDIDA : "origina copias"

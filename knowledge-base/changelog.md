@@ -8,8 +8,63 @@ generated:
 
 # Changelog
 
+## 2026-11-04
+
+- US-008: el usuario asignó a Data Engineering la aceptación de la evaluación Medallion por dataset y acordó un enfoque híbrido: aplicar criterios cualitativos documentados inicialmente y establecer umbrales cuantitativos progresivamente cuando exista evidencia operativa suficiente. Los umbrales no bloquean el primer alcance; la selección de datasets representativos sigue pendiente. Historia actualizada y permanece CONDITIONAL hasta seleccionar esos datasets y completar su validación.
+
+## 2026-10-31
+
+- US-007: alcance backend-first aprobado para refinamiento: ventas CDC sintéticas, lotes manuales y polling PostgreSQL cada minuto; outputs inmutables en `prepared` (writer distinto, sin escribir `gold`). API/pipeline y persistencia por tenant; dataset también se registra en el catálogo existente. UI se pospone hasta diseñar Stitch.
+- US-007: decisiones aprobadas: historial CDC completo y estado vigente sin expiración; orden por posición de origen o timestamp con empate ambiguo; cuatro controles bloquean publicación; versión inmutable por éxito y la fallida no reemplaza la vigente; reintentos manuales ilimitados, auditados y enlazados; errores saneados por rol; acceso tenant-scoped; estados y campos E-22 a E-27. En entrada manual Data Engineering envía lote CDC y backend lo materializa.
+
+- US-007: usuario aprobó reutilizar fuente PostgreSQL US-001, polling por minuto, destino `prepared` separado de `gold`, writer distinto, flujo manual por lotes CDC, registro en catálogo, scope existente `sources:write` y retención sin vencimiento de ejecuciones/evidencia saneada en laboratorio. Diseño backend-first en `docs/superpowers/specs/2026-11-02-us-007-backend-cdc-design.md`; sin código. UI se difiere.
+- Usuario eligió US-007 como siguiente requerimiento. Preparado RCP-005 con evidencia, límites del registro actual de datasets y decisiones funcionales pendientes; no se aprueba alcance ni se modifica producto.
+
+
+## 2026-10-30
+
+- US-006: usuario aprobó el diseño del incremento local: cuentas gestionadas directamente en Keycloak, permisos KPI mantenidos por BI, solo el propietario concede y revoca grants específicos de su dashboard. Plan de implementación preparado para revisión; sin cambios de código.
+
+## 2026-10-29
+
+- Usuario eligió la imagen comunitaria `keycloak/keycloak:26.8` de Docker Hub para el laboratorio, manteniendo PostgreSQL y el esquema `keycloak`.
+- US-006: usuario eligió Red Hat Keycloak 26.x, misma base PostgreSQL y esquema propio `keycloak`; confirmó exigir lectura de catálogo junto al permiso de consulta o edición para los KPI. La integración real y la política individual siguen pendientes.
+- US-006: iniciado RCP-004 para el siguiente incremento de acceso real y autorización por KPI; fuente de identidad y política productiva pendientes de decisión.
+
+## 2026-10-28
+
+- US-006: usuario aceptó usar en laboratorio la política de catálogo existente por tenant/scope; autorización individual por KPI queda para entrega posterior, sin aprobación productiva.
+- Usuario decidió migrar dashboards legados compartidos con todo el tenant a privados; el propietario volverá a compartirlos individualmente. Se preserva el contenido.
+- US-006: worktree aislado preparado y plan inicial documentado; migración de dashboards previamente compartidos y fuente de identidad permanecen pendientes, sin cambios de producto.
+- Usuario autorizó conservar la composición Stitch de US-006 y corregir únicamente textos y controles contradictorios documentados en implementation-conflicts.md.
+- US-006: documentados conflictos entre HTML Stitch aprobado y reglas acordadas, y diferencia entre compartición actual por tenant y acceso individual solicitado. Decisión humana pendiente antes de desviarse del diseño; sin cambios de producto.
+- Usuario aprobó los diseños Stitch US-006 y excluyó las variantes móviles de estados de excepción de este incremento; discrepancias exportadas y controles recortados siguen documentados, sin declarar implementación.
+- Generadas vistas Stitch US-006 de sin datos/error, invitado sin KPI y acceso no disponible; capturas originales revisadas con discrepancias. Stitch reporta correcciones, aún no reflejadas en referencias recuperadas. Gestión corregida inspeccionada: canal y revocación coherentes, con recortes visuales pendientes.
+- Generadas propuestas Stitch US-006 de dashboard desktop/móvil y gestión/compartición; documentadas referencias y discrepancias pendientes. Sin aprobación visual ni cambios de producto.
+- US-006: usuario eligió aplicar revocación en la siguiente solicitud o recarga y solicitó generar el diseño visual en Google Stitch.
+- US-006: usuario eligió compartir el dashboard con personas concretas autorizadas del tenant, con revocación por el propietario; directorio de identidades pendiente de verificar.
+- US-006: usuario eligió conservar el canal al cambiar fechas y mostrar estado sin datos si la combinación no devuelve resultados.
+- US-006: usuario eligió aislar errores por visualización, mantener las exitosas y permitir reintentar la afectada.
+- US-006: usuario eligió conservar el período sin datos y mostrar estado vacío en visualizaciones afectadas; fechas en orden inválido se rechazan.
+- US-006: usuario eligió que el propietario configure el rango inicial explícito del dashboard al crear o editar; se usa al abrir y limpiar filtros.
+- US-006: usuario eligió ocultar KPI no autorizados al invitado y mostrar estado vacío sin revelar KPI si no tiene acceso a ninguno.
+- US-006: usuario eligió que limpiar filtros restaure el período inicial configurado y todos los canales; definición de ese período sigue pendiente.
+- US-006: usuario eligió combinar fecha y canal con una sola selección de canal sincronizada entre barra y gráfico; una nueva selección reemplaza la anterior. Valores predeterminados pendientes.
+- US-006: usuario aceptó dashboard personal con lectura compartida; propietario crea/edita y comparte, invitados autorizados consultan sin edición, dentro del tenant y según permisos KPI. Detalles de asignación pendientes.
+- Usuario confirmó para US-006 tarjetas KPI, barras por canal, filtros de fecha y canal, y propietario creador/editor con consumidores autorizados; permisos detallados y combinación de filtros siguen pendientes.
+- US-006 refinada con criterios de selección gráfica, filtro reversible, incompatibilidad y limpieza, basados en decisiones del usuario registradas en RCP-003. Continúa CONDITIONAL por roles, visualizaciones y reglas de filtros pendientes.
+- US-006: usuario conforme con filtro de gráfico visible y reversible, acción de limpiar filtros e indicación cuando un filtro no aplica; selección múltiple sigue sin acuerdo.
+- Usuario confirmó selección de barra o segmento de gráfico para filtrar el resto del dashboard US-006, además de la barra de filtros; detalles de interacción pendientes en RCP-003.
+- Usuario seleccionó combinar «Pulso del negocio» y «Exploración conectada» como dirección del dashboard US-006; RCP-003 conserva abiertos los detalles de visualización y filtros.
+- Usuario conforme con opción 2 de US-006: dashboard interactivo con KPI autorizados y filtros compartidos; RCP-003 registra el acuerdo y conserva pendientes roles, visualizaciones y detalles de filtros. Sin implementación ni aprobación productiva.
+- Preparado RCP-003 para US-006: separa funcionalidad existente, propuesta de primer incremento y preguntas sobre roles, visualizaciones, estados y Stitch. Pendiente validación humana; no se aprueba alcance ni se implementa producto.
+
 ## 2026-10-18
 
+- US-005 piloto PostgreSQL Gold: plan TDD creado para revisión. Incluye configuración segura tenant→credencial lectora, adaptador acotado, integración opt-in y herramienta de línea base; ejecución aislada queda pendiente de aprobación del plan y selección del método. Sin cambios de código ni pruebas.
+- US-005 piloto PostgreSQL Gold: especificación de diseño aprobada por `human:ianache` para planificación. Fija KPI ingresos netos, vista Gold, selección segura del rol por tenant, modo lab opt-in y línea base E2E sin SLA. Plan de implementación pendiente de revisión; sin cambios de código.
+- ACP-001: contexto AS-IS e impacto arquitectónico para el piloto US-005 documenta integración E2E API→vista Gold sintética PostgreSQL y medición sin SLA. `human:ianache` confirmó que el aprobador por dataset es el responsable/Data Steward. Se documentan riesgos, inferencias y preguntas; no se aprueban ADR/ASR ni se implementa aún el flujo de aprobación o serving.
+- US-005-Q2: `human:ianache` acordó el alcance del siguiente incremento: piloto técnico con ventas sintéticas en PostgreSQL, política aprobada por dataset como requisito para elegibilidad productiva y medición de una línea base sintética de latencia/capacidad sin SLA. El piloto no selecciona el workload productivo ni aprueba umbrales numéricos u objetivos productivos; US-005-Q2 sigue abierta para producción.
 - Implementado el incremento de laboratorio US-005-Q1 en `feat/us-005-lab-metadata`: campos ausentes sin error 500, estado explícito de linaje, eliminación de respaldos ficticios, confianza de consulta visible y autorización por identidad/visibilidad/scope antes del cálculo. Verificación: frontend 145 aprobadas, backend 197 aprobadas/1 PostgreSQL opt-in omitida, navegador 4 aprobadas, tipos/build y revisión independiente sin defectos. Evidencia y manual en `docs/ux/us-005/verification.md`. Aceptación manual pendiente; US-005-Q2 y los gates productivos continúan abiertos.
 - US-005-Q1: `human:ianache` aprobó el comportamiento para laboratorio: datos sintéticos explícitos, calidad/frescura `not_evaluated`, metadatos faltantes señalados sin bloquear la demo, y autorización denegada por defecto (403 para scope insuficiente; 404 genérico para recursos ocultos/fuera del tenant). Se actualizó US-005 y API-001. La aprobación no cambia BRC-001 BR-009 ni define umbrales productivos; se registró US-005-Q2 para workload real, controles/umbrales por clase y objetivos de servicio. US-005 permanece CONDITIONAL; no se modificó código ni se declaró la historia terminada.
 - El usuario (`human:ianache`) solicitó expresamente «aprobar ADR-019». Se registró `adr_status: Aceptado` y la decisión humana con fecha, manteniendo `status: draft`, sin añadir `verified`, justificar por el decisor ni cerrar detalles técnicos pendientes. Se sincronizaron índice de ADRs, índice de Knowledge Base, ASR-006 y su catálogo; la disposición del candidato ASR y los demás ADRs no se aprobaron. Se conserva el texto referido a Claude Design, sin sustituir el mandato vigente de fidelidad a Google Stitch. Sin cambios de implementación ni commit.
