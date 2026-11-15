@@ -18,6 +18,14 @@ CREATE TABLE gold.cdc_sales_events (
 COMMENT ON TABLE gold.cdc_sales_events IS 'Synthetic append-only CDC feed for sales lines. capture_id is a polling cursor, not event ordering.';
 CREATE INDEX cdc_sales_events_poll ON gold.cdc_sales_events(tenant_id,capture_id);
 CREATE INDEX cdc_sales_events_order ON gold.cdc_sales_events(tenant_id,source_position,event_timestamp);
+GRANT SELECT ON gold.cdc_sales_events TO bi_reader_global,bi_reader_other;
+ALTER TABLE gold.cdc_sales_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gold.cdc_sales_events FORCE ROW LEVEL SECURITY;
+CREATE POLICY cdc_tenant_scope ON gold.cdc_sales_events
+USING (tenant_id = CASE current_user
+  WHEN 'bi_reader_global' THEN 'demo-global'
+  WHEN 'bi_reader_other' THEN 'demo-other'
+  ELSE NULL END);
 
 CREATE FUNCTION gold.reject_cdc_mutation() RETURNS trigger
 LANGUAGE plpgsql AS $$
