@@ -47,7 +47,7 @@ sources:
 
 ## 3. Resumen ejecutivo del contexto
 
-El PRD describe ingeniería complementaria para casos donde el consumo semántico directo no basta. El primer incremento acordado es backend-first para ventas con CDC sintético en PostgreSQL Gold: Data Engineering entrega lotes CDC o BI los lee por polling cada minuto desde la fuente registrada. Ambos flujos validan y materializan versiones inmutables en `prepared`, sin escribir en `gold`; los resultados también aparecen en el catálogo existente. La UI se difiere. El backend y su API aún no se han implementado. Quedan decisiones sobre la tabla/consulta CDC, definición exacta de evento inválido, registro de metadatos de catálogo y retención de linaje/configuración.
+El PRD describe ingeniería complementaria para casos donde el consumo semántico directo no basta. El primer incremento es backend-first para ventas con CDC sintético en PostgreSQL Gold: Data Engineering entrega lotes CDC o BI los lee por polling cada minuto desde la fuente registrada. Ambos flujos validan y materializan versiones inmutables en `prepared`, sin escribir en `gold`; los resultados también aparecen en el catálogo existente. La implementación actual conserva pipelines y metadatos de catálogo en SQLite, y ejecuciones, checkpoints y versiones CDC en PostgreSQL. La UI se difiere. El contrato físico CDC y algunos detalles operativos siguen sujetos a revisión.
 
 ## 4. Registro de evidencia
 
@@ -92,6 +92,7 @@ El PRD describe ingeniería complementaria para casos donde el consumo semántic
 | E-36 | Una falla de polling pausa el pipeline; ticks posteriores omiten el rango retenido hasta que Data Engineering haga un reintento manual exitoso. | Conversacion actual, 2026-11-14 | Decision humana de operacion | Alta |
 
 | E-37 | Cada lote CDC contiene source_position en todos sus eventos o en ninguno. Si mezcla eventos con y sin posicion, se rechaza por calidad antes de materializar. | Conversacion actual, 2026-11-14 | Decision humana de orden CDC | Alta |
+| E-38 | La instruccion mas reciente mantiene en SQLite la configuracion de pipelines y los metadatos del catalogo preparado; PostgreSQL conserva ejecuciones CDC, checkpoints, versiones, eventos, estado vigente y linaje. Esta decision reemplaza E-35 para el limite de persistencia. | Conversacion actual, 2026-11-14 | Decision humana de persistencia | Alta |
 
 ## 5. Hechos confirmados
 
@@ -174,7 +175,8 @@ El PRD describe ingeniería complementaria para casos donde el consumo semántic
 | Estados y reintentos: E-26; intentos manuales sin máximo fijo, E-27 | Usuario | E-26/E-27 | Confirmada |
 
 
-| Persistencia US-007: PostgreSQL es autoridad unica para pipelines, runs, checkpoints, versiones, linaje y entradas preparadas; el catalogo combina registros SQLite existentes y preparados PostgreSQL solo durante lecturas | Usuario | E-35, conversacion actual, 2026-11-14 | Confirmada; sin doble escritura |
+| Persistencia US-007 (direccion inicial): PostgreSQL como autoridad para pipelines, runs, checkpoints, versiones, linaje y entradas preparadas | Usuario | E-35, conversacion actual, 2026-11-14 | Supersedida por E-38 para pipelines y metadatos de catalogo |
+| Persistencia US-007 (direccion vigente): SQLite conserva pipelines y metadatos de catalogo; PostgreSQL conserva la ejecucion CDC y datos versionados, proyectados en el catalogo durante la lectura | Usuario | E-38, conversacion actual, 2026-11-14 | Confirmada; sin espejo de pipelines/catalogo en PostgreSQL |
 | Orden de lotes CDC: todos los eventos del lote incluyen source_position o ninguno; lotes mixtos se rechazan por calidad | Usuario | E-37, conversacion actual, 2026-11-14 | Confirmada |
 | Polling tras falla: pausar pipeline y omitir el rango en ticks posteriores hasta reintento manual exitoso | Usuario | E-36, conversacion actual, 2026-11-14 | Confirmada |
 | Validación funcional del pack | Responsable funcional por asignar | Pendiente | Abierta |
@@ -188,4 +190,4 @@ El PRD describe ingeniería complementaria para casos donde el consumo semántic
 
 ## 12. Handoff para el siguiente rol
 
-El diseno backend y el plan actualizados estan en `docs/superpowers/specs/2026-11-02-us-007-backend-cdc-design.md` y `docs/superpowers/plans/2026-11-02-us-007-backend-cdc-plan.md`; ambos siguen pendientes de aprobacion humana. Se incorporaron PostgreSQL como autoridad unica de US-007, la proyeccion de catalogo por lectura combinada, la pausa de polling tras falla y el rechazo por calidad de lotes que mezclan posiciones CDC. El contrato SQL CDC y la configuracion concreta de credenciales de laboratorio permanecen como propuestas para revision. La UI Stitch se difiere al siguiente incremento. No se implemento codigo.
+El diseno backend y el plan actualizados estan en `docs/superpowers/specs/2026-11-02-us-007-backend-cdc-design.md` y `docs/superpowers/plans/2026-11-02-us-007-backend-cdc-plan.md`; siguen pendientes de aprobacion humana. Se conserva la direccion vigente E-38: SQLite para pipelines y catalogo, PostgreSQL para ejecuciones y datos CDC versionados, con proyeccion de materializacion. Tambien se documentan la pausa de polling tras falla y el rechazo por calidad de lotes que mezclan posiciones CDC. El contrato SQL CDC y la configuracion concreta de credenciales de laboratorio permanecen como propuestas para revision. La UI Stitch se difiere al siguiente incremento.

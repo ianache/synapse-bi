@@ -1,6 +1,6 @@
 # US-007 — Backend-first CDC design
 
-**Status:** Draft for human review. The user selected PostgreSQL-only persistence for US-007 state/publication, PostgreSQL-backed prepared catalog entries projected through the existing catalog API, and pausing polling after failure. Product code must wait for approval of this updated design.
+**Status:** Implementation authorized on 2026-11-14 with the latest user direction to continue the existing SQLite control plane and dataset catalog for pipeline configuration and prepared-dataset metadata, while PostgreSQL remains authoritative for CDC runs, checkpoints, and prepared versions. The detailed physical design remains a draft for human review.
 
 **Date:** 2026-11-02
 
@@ -57,17 +57,17 @@ The purpose of the first slice is to make the result durable, tenant-scoped, tra
 
 | Approach | Trade-off | Decision |
 |---|---|---|
-| Store US-007 prepared catalog records in PostgreSQL; combine them with existing SQLite records in the current catalog API during reads. | Avoids cross-database publication writes and preserves existing records; catalog reads depend on both stores. | Selected by the user on 2026-11-14. |
+| Keep pipeline configuration and prepared-dataset catalog metadata in SQLite; keep CDC execution state and prepared versions in PostgreSQL, with a read-only materialization projection in the existing catalog API. | Preserves the current control-plane and catalog contracts; avoids a catalog/pipeline migration and cross-database writes during publication; catalog projections depend on both stores. | Selected by the user in the latest direction on 2026-11-14. |
 | Migrate the entire dataset catalog from SQLite to PostgreSQL. | One backing store for all datasets, but expands this increment into a migration of existing US-002 records and behavior. | Not selected. |
 | Keep prepared outputs only in a separate preparation API. | Smallest catalog change, but prepared outputs would not appear in the existing dataset catalog as previously agreed. | Not selected. |
 
 ## Existing system facts
 
-- FastAPI owns the API. SQLite is the existing control-plane store and currently has schema version 6.
+- FastAPI owns the API. SQLite is the existing control-plane store; the current database schema is version 8.
 - Source registration is tenant-scoped, separates `sources:read`, `sources:write`, and `sources:observe`, encrypts credentials, and connects from the backend through an allowlisted PostgreSQL connector.
 - The case study has synthetic sales tables in PostgreSQL `gold`, tenant RLS, and separate read-only database roles. It has no CDC or ETL yet.
 - Dataset registration stores declared metadata and source snapshots; it does not execute a process or materialize data.
-- The dataset catalog is currently stored in SQLite schema version 6. Its rows require a source and observation, and its API derives origin columns from the source observation. PostgreSQL is already the Gold source and will also host all US-007 state.
+- The dataset catalog and US-007 pipeline configuration are stored in SQLite (dataset schema v3; pipeline registry v7/v8). Catalog rows require a source and observation, and the API derives origin columns from the source observation. PostgreSQL is the Gold source and hosts CDC execution and prepared version data.
 - The current US-007 story is still draft/CONDITIONAL. Its existing UI has no approved Stitch screen for this flow.
 
 ## Proposed backend design
@@ -84,11 +84,11 @@ Each batch must use one ordering mode: either every event includes `source_posit
 
 ### 2. Pipeline configuration and polling
 
-Store an explicit tenant-scoped pipeline configuration that links a registered source, prepared dataset identity, and process reference. The poller considers enabled pipelines only; it never polls every registered source by default.
+Store the explicit tenant-scoped pipeline configuration in the existing SQLite `preparation_pipelines` registry. Keep the prepared-dataset catalog metadata in SQLite `dataset_registry`; create both records in one SQLite transaction. The poller considers enabled pipelines only; it never polls every registered source by default.
 
 Run one opt-in background poller in the lab backend process at 60-second intervals. Use a PostgreSQL advisory lock so a second backend process does not run the same poller concurrently. Read the source through the existing `SourceService` credential path and fixed parameterized SQL for the CDC table; do not accept client SQL or database identifiers.
 
-Advance the checkpoint only in the same successful prepared-database transaction that publishes the version. If a batch fails, record the attempt and hold that pipeline at the failed range, atomically setting its polling state to paused. Later scheduled ticks skip paused pipelines. Data Engineering must invoke a manual retry; a successful retry publishes and advances the checkpoint in one PostgreSQL transaction and clears the pause. A failed retry keeps the pipeline paused. A poll with no new events creates no execution and no empty version.
+Advance the checkpoint only in the same successful prepared-database transaction that publishes the version. If a batch fails, record the attempt and hold that pipeline at the failed range in PostgreSQL. The latest poll-origin run is the durable pause signal: later scheduled ticks skip the pipeline while its latest poll run is failed. Do not add a separate pause flag to SQLite. Data Engineering must invoke a linked manual retry bounded by the failed run's recorded capture range; a successful retry publishes and advances the checkpoint in one PostgreSQL transaction, after which polling resumes. A failed retry keeps the pipeline paused. A poll with no new events creates no execution and no empty version.
 
 ### 3. Shared processing and materialization
 
@@ -98,15 +98,15 @@ The processor validates the agreed event contract, business keys, operation-spec
 
 For a successful batch, write one new version containing the full CDC history as of the accepted range and the matching current-state snapshot. Deletes remain in history and remove the key from current state. Version contents and lineage are immutable. The lab does not purge CDC, published versions, run records, or sanitized failure evidence. This does not establish a production retention rule.
 
-Use PostgreSQL `prepared` tables for pipeline configuration, run records, checkpoints, version manifests, event history, version-specific current state, lineage, and prepared catalog records. PostgreSQL is the only persistence authority for US-007; do not create a SQLite pipeline/catalog mirror or write the same publication to both databases. Keep run outcome, version, lineage, latest-version pointer, and successful poll checkpoint in one PostgreSQL transaction. Store sanitized failure evidence, actor, tenant, request ID, and linked attempt IDs; never store raw payloads in error messages or logs.
+Use PostgreSQL `prepared` tables for run records, checkpoints, version manifests, event history, version-specific current state, and immutable lineage. Keep pipeline configuration and prepared-dataset catalog metadata in SQLite; do not create PostgreSQL mirrors of those records. Keep run outcome, version, lineage, and successful poll checkpoint in one PostgreSQL transaction. Store sanitized failure evidence, actor, tenant, request ID, and linked attempt IDs; never store raw payloads in error messages or logs. Serialize manual and poll publication per pipeline so concurrent runs cannot allocate the same version number.
 
-The existing `GET /api/v1/datasets` and `GET /api/v1/datasets/{id}` catalog reads combine the current SQLite-backed datasets with PostgreSQL-backed US-007 prepared entries. Existing SQLite records remain unchanged. Prepared entries receive a system-generated ID and retain input dataset/source references plus a snapshot of declared owner, classification, and freshness metadata. Missing declared metadata remains missing and contributes to the existing completeness calculation; no defaults or governance approval are inferred. Add an explicit `materialization` projection for the output location in `prepared` and its latest published version. The existing `origin` continues to describe the registered input source for compatibility. Filtering, total count, stable ordering, and pagination apply to the combined result. If PostgreSQL catalog reads fail, the API returns an error instead of silently omitting prepared datasets.
+The existing `GET /api/v1/datasets` and `GET /api/v1/datasets/{id}` catalog reads continue to resolve dataset records and apply their existing filters/order/count/page behavior from SQLite. A prepared-dataset row receives a read-only PostgreSQL `materialization` projection for the output location in `prepared` and its latest published version. The SQLite record keeps its system-generated ID, input dataset/source references, and snapshot of declared owner, classification, and freshness metadata. Missing declared metadata remains missing and contributes to the existing completeness calculation; no defaults or governance approval are inferred. The existing `origin` continues to describe the registered input source for compatibility. If PostgreSQL materialization reads fail, the API returns an error instead of omitting or returning stale materialization data.
 
-Only configuration-time lookups of the registered source and input dataset read SQLite, using existing tenant-scoped services. The pipeline and PostgreSQL prepared catalog persist their IDs and required metadata snapshot. No transaction or outbox spanning SQLite and PostgreSQL is needed because US-007 publication and its catalog entry share PostgreSQL.
+Configuration-time lookups use existing tenant-scoped SQLite services. Pipeline creation writes the pipeline and prepared catalog metadata together in SQLite; processing and publication write only PostgreSQL runtime data. No transaction or outbox spanning SQLite and PostgreSQL is needed because CDC publication does not update the SQLite catalog row; the latest version is projected on reads.
 
 ### 4. Credentials and tenant boundary
 
-Reuse the tenant-scoped read-only connection stored by US-001 for source reads. Use a separate prepared-schema writer credential and tenant-restricted prepared readers for the lab. Do not return any credential to the API client. Apply tenant predicates and PostgreSQL RLS; missing tenant resolution denies access.
+Reuse the tenant-scoped read-only connection stored by US-001 for CDC reads and prepared-data reads. Use a separate prepared-schema writer credential for the lab. Do not return any credential to the API client. Apply tenant predicates to SQLite pipeline/catalog operations and PostgreSQL RLS to prepared data; missing tenant resolution denies access.
 
 The user approved `sources:write` for source administration. Pipeline configuration, manual submission, and retries use existing `datasets:write` plus `sources:read` where needed; reading runs and published data uses `datasets:read`. These scopes retain existing tenant derivation from the authenticated principal.
 
@@ -125,7 +125,8 @@ Responses include the approved execution fields. Data Engineering receives sanit
 ### 6. Database and lifecycle changes
 
 - Add a versioned PostgreSQL case-study migration for CDC source events and the `prepared` schema, roles, grants, and RLS policies.
-- Do not add a SQLite migration for US-007 pipeline, execution, version, lineage, or prepared-catalog records. The existing source and input-dataset registries remain SQLite-backed and are read for tenant-scoped configuration validation and metadata snapshots.
+- Preserve the current SQLite v8 pipeline and catalog records; do not migrate them to PostgreSQL or create duplicate PostgreSQL copies. Add a SQLite migration only if a separately approved SQLite behavior requires one.
+- Use versioned PostgreSQL migrations for CDC source events and the `prepared` runtime schema, roles, grants, and RLS policies.
 - Keep the new poller opt-in for the lab, disabled in production configuration, and safe when the source or prepared writer credential is unavailable.
 - Do not change frontend routes, React pages, or visual assets in this increment.
 
@@ -137,8 +138,8 @@ Responses include the approved execution fields. Data Engineering receives sanit
 - Retries create linked attempts and never erase previous attempts. A failed polled range remains held until manually retried.
 - A tenant cannot read, write, poll, or retry another tenant's pipeline, runs, versions, or events.
 - Polling uses the one-minute interval and the capture checkpoint, creates no empty versions, and does not cause repeated automatic attempts after failure.
-- A failed polling attempt pauses its pipeline; subsequent ticks skip it until Data Engineering manually retries. Only successful retry clears the pause and advances the checkpoint.
-- The existing catalog API returns SQLite datasets and PostgreSQL prepared entries with one consistent filter/order/count/page result and never omits prepared entries on a PostgreSQL read failure.
+- A failed polling attempt is durably represented by its poll-origin run in PostgreSQL; subsequent ticks skip the pipeline until Data Engineering manually retries. Only a successful retry advances the checkpoint and resumes polling.
+- The existing catalog API keeps SQLite dataset records and applies existing filters/order/count/page behavior there; prepared rows receive a PostgreSQL materialization projection. A PostgreSQL projection failure returns an error rather than omitting or returning stale materialization data.
 - Published metadata includes the approved lineage, run fields, counts, controls, version, and last successful version.
 - Secrets and raw payloads do not appear in responses or logs. Gold remains unchanged by the preparation writer.
 
@@ -154,21 +155,26 @@ Create exact Google Stitch references for pipeline setup, execution history/deta
 
 The independent Builder Check found these three decisions; the user has now answered all three and they are incorporated above.
 
-## Human decisions added during plan review (2026-11-14)
+## Initial persistence direction (2026-11-14; superseded by the latest instruction below)
 
-- Store all US-007 pipeline, run, checkpoint, version, lineage, and prepared-catalog state in PostgreSQL. Publication uses PostgreSQL only; no dual write to SQLite.
-- Show PostgreSQL prepared-catalog entries through the existing datasets API by combining them with existing SQLite-backed entries on reads. Preserve existing SQLite rows.
-- On a poll failure, pause the pipeline. Scheduled ticks skip it until Data Engineering manually retries; only a successful retry clears the pause and advances the checkpoint.
+- The initial direction selected PostgreSQL for all US-007 state and PostgreSQL-backed prepared-catalog entries projected through the existing API. The user later instructed that pipeline and catalog metadata continue in SQLite; this initial persistence choice is superseded.
+- The polling behavior remains: a failed poll pauses scheduling until Data Engineering performs a successful manual retry; the checkpoint does not advance on failure.
+
+## Latest persistence direction (2026-11-14)
+
+- Continue the existing SQLite control plane: pipeline configuration and prepared-dataset catalog metadata remain in SQLite.
+- Keep CDC run records, checkpoints, versions, events, current-state snapshots, and immutable lineage in PostgreSQL. Do not mirror pipeline/catalog metadata into PostgreSQL or split a publication transaction across stores.
+- The existing catalog reads SQLite dataset records and attach a read-only PostgreSQL materialization projection for prepared outputs. A projection failure returns an error instead of stale or incomplete materialization data.
+- Treat the latest poll-origin failure in PostgreSQL as the durable pause signal; no separate SQLite pause flag is introduced. A successful linked retry resumes polling and advances the checkpoint.
 
 ## Remaining implementation calls for review
 
 - The source event relation will be `gold.cdc_sales_events`, with an internal capture ID for polling and the approved optional source position for event ordering.
-- The prepared catalog entry receives a system-generated ID and links to the input dataset, process, run, prepared version, and consumed event range. It snapshots declared source governance metadata and preserves incompleteness when fields are missing; no unrelated taxonomy/default is introduced.
-- Prepared catalog entries have a system-generated stable ID, input dataset/source references, process reference, declared-governance snapshot, output columns, and `materialization` reference. Their latest successful version pointer is updated atomically with publication; per-version lineage remains immutable. Missing metadata remains incomplete; no unrelated taxonomy/default is introduced.
-- PostgreSQL-backed prepared entries are merged with SQLite-backed entries by the existing catalog read API. Combined filtering, total count, stable ordering, and pagination are calculated over both sets; failure to read either backing store fails the request rather than returning a partial catalog.
-- Lab-only reader/writer PostgreSQL roles remain tenant-restricted by RLS; the source connection remains read-only and the writer is separate.
-- Laboratory prepared readers and writers use separate tenant-fixed PostgreSQL roles and secret files. The API maps the authenticated tenant to an explicitly configured role/secret; it never accepts role, tenant, schema, or relation names from request bodies. The writer has no privileges on `gold`; source readers remain read-only.
-- A poll failure sets a durable paused state in PostgreSQL while leaving the checkpoint unchanged. The retry endpoint processes the held range; success atomically publishes, advances the checkpoint, and clears pause. Failure leaves pause in place. Later scheduled ticks never resubmit a paused range.
+- The prepared catalog entry remains in SQLite with a system-generated stable ID, input dataset/source references, process reference, declared-governance snapshot, and output columns. PostgreSQL materialization data is projected on reads; latest version is resolved from PostgreSQL without updating the SQLite row during publication. Missing metadata remains incomplete; no unrelated taxonomy/default is introduced.
+- Per-version lineage remains immutable in PostgreSQL. A successful publication and its run/checkpoint state commit atomically there; SQLite catalog metadata is not part of that transaction.
+- Tenant-scoped API predicates protect SQLite pipeline/catalog rows; PostgreSQL prepared data remains tenant-restricted by RLS. The source connection remains read-only and the writer is separate.
+- Reuse the registered tenant source reader for CDC and prepared-data reads. Use a separate laboratory writer credential; the API never accepts role, tenant, schema, or relation names from request bodies. The writer has no privileges on `gold`.
+- A poll failure is retained as a failed poll-origin run in PostgreSQL and leaves the checkpoint unchanged. Scheduled ticks skip pipelines whose latest poll run failed. A retry is bounded by the failed capture range; success atomically publishes and advances the checkpoint, while failure leaves polling paused.
 - The exact physical API schemas, SQL constraints, and request-size limits are implementation details subject to plan review.
 - A mixed batch with some source positions and some missing source positions has no approved total-order rule yet; decide whether to reject mixed batches or accept them with an explicit deterministic ambiguity policy before implementing event ordering.
 - A batch containing both positioned and unpositioned events is rejected by the quality gate. This rule was approved by the user on 2026-11-14.

@@ -10,9 +10,10 @@ generated:
 
 ## 2026-11-14
 
-- US-007: el usuario aprobó PostgreSQL como única autoridad de persistencia para pipelines, ejecuciones, checkpoints, versiones, linaje y catálogo de datasets preparados. El endpoint existente combina las entradas SQLite actuales con las entradas preparadas PostgreSQL durante la lectura, sin doble escritura. También aprobó pausar el polling tras una falla y omitir ticks posteriores hasta un reintento manual exitoso. Diseño y plan actualizados para revisión; sin cambios de código.
+- US-007: decisión inicial del 14-11: PostgreSQL como autoridad única para pipelines, ejecuciones, checkpoints, versiones, linaje y catálogo preparado; el catálogo combinaba entradas SQLite y PostgreSQL durante la lectura. Esta dirección de persistencia fue reemplazada por la instrucción posterior del mismo día; la decisión de pausar el polling tras una falla se mantiene.
 - US-007: el usuario aprobó rechazar por calidad los lotes que mezclen eventos con `source_position` y sin ella. Los lotes homogéneos se ordenan por posición o, si todos carecen de ella, por fecha/hora; los empates de fecha/hora se conservan como ambiguos. Diseño y plan actualizados; sin cambios de código.
-- US-007: el código integrado desde `origin/master` implementa el incremento anterior con SQLite para configuración y catálogo, y PostgreSQL para CDC y datos preparados. La alineación de esa implementación con las decisiones de arquitectura aprobadas el 2026-11-14 queda pendiente.
+- US-007: el código integrado desde `origin/master` conserva SQLite para configuración y catálogo, y PostgreSQL para ejecuciones y datos CDC preparados; esta división coincide con la instrucción más reciente. La proyección de materialización y el reintento acotado al rango fallido siguen en el plan.
+- US-007: instrucción más reciente del usuario: continuar con SQLite para configuración de pipelines y metadatos del catálogo; mantener en PostgreSQL ejecuciones, checkpoints, versiones, eventos, estado vigente y linaje. El plan, el diseño y RCP-005 se actualizaron para reflejarlo; sin cambios de código.
 
 ## 2026-11-04
 
