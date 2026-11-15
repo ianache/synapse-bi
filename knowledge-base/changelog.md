@@ -12,6 +12,7 @@ generated:
 
 - US-007: el usuario aprobó PostgreSQL como única autoridad de persistencia para pipelines, ejecuciones, checkpoints, versiones, linaje y catálogo de datasets preparados. El endpoint existente combina las entradas SQLite actuales con las entradas preparadas PostgreSQL durante la lectura, sin doble escritura. También aprobó pausar el polling tras una falla y omitir ticks posteriores hasta un reintento manual exitoso. Diseño y plan actualizados para revisión; sin cambios de código.
 - US-007: el usuario aprobó rechazar por calidad los lotes que mezclen eventos con `source_position` y sin ella. Los lotes homogéneos se ordenan por posición o, si todos carecen de ella, por fecha/hora; los empates de fecha/hora se conservan como ambiguos. Diseño y plan actualizados; sin cambios de código.
+- US-007: el código integrado desde `origin/master` implementa el incremento anterior con SQLite para configuración y catálogo, y PostgreSQL para CDC y datos preparados. La alineación de esa implementación con las decisiones de arquitectura aprobadas el 2026-11-14 queda pendiente.
 
 ## 2026-11-04
 

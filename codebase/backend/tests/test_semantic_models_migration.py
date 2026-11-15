@@ -1,4 +1,4 @@
-"""V5 must preserve existing records, reject invalid tenant relations, and roll back all DDL."""
+﻿"""V5 must preserve existing records, reject invalid tenant relations, and roll back all DDL."""
 import sqlite3
 
 import pytest
@@ -20,7 +20,7 @@ def test_upgrade_v4_is_additive(tmp_path):
     db.initialize()
     db.initialize()
     with db.connect() as conn:
-        assert conn.execute('SELECT MAX(version) FROM schema_migrations').fetchone()[0] == 6
+        assert conn.execute('SELECT MAX(version) FROM schema_migrations').fetchone()[0] == 8
         assert conn.execute('SELECT name FROM dashboards').fetchone()[0] == 'Existing'
         assert conn.execute("SELECT count(*) FROM sqlite_master WHERE type='table' AND name LIKE 'models_%'").fetchone()[0] == 3
         assert conn.execute('PRAGMA foreign_key_check').fetchall() == []
@@ -42,7 +42,7 @@ def test_future_rejected_before_ddl(tmp_path):
     db = Database(tmp_path / 'future.db')
     with db.connect(write=True) as conn:
         conn.execute('CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY)')
-        conn.execute('INSERT INTO schema_migrations VALUES(7)')
+        conn.execute('INSERT INTO schema_migrations VALUES(9)')
     with pytest.raises(RuntimeError):
         db.initialize()
     with db.connect() as conn:

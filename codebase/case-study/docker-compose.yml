@@ -20,6 +20,7 @@ services:
       - admin_password
       - reader_global_password
       - reader_other_password
+      - prepared_writer_password
     shm_size: 128mb
     healthcheck:
       test:
@@ -121,6 +122,8 @@ secrets:
     file: ./.docker-secrets/reader_global_password.txt
   reader_other_password:
     file: ./.docker-secrets/reader_other_password.txt
+  prepared_writer_password:
+    file: ./.docker-secrets/prepared_writer_password.txt
   keycloak_db_password:
     file: ./.docker-secrets/keycloak_db_password.txt
   keycloak_admin_password:

@@ -21,6 +21,8 @@ class Settings:
     source_targets: tuple = ()
     source_key_file: str = ""
     source_ca_file: str = ""
+    prepared_writer_secret_file: str = ""
+    preparation_polling_enabled: bool = False
     allowed_origins: tuple[str, ...] = field(default_factory=lambda: (
         "http://127.0.0.1:5173", "http://localhost:5173",
         "http://127.0.0.1:4173", "http://localhost:4173",
@@ -36,6 +38,8 @@ class Settings:
             source_targets=tuple(json.loads(os.getenv("BI_SOURCE_TARGETS", "[]"))),
             source_key_file=os.getenv("BI_SOURCE_KEY_FILE", ""),
             source_ca_file=os.getenv("BI_SOURCE_CA_FILE", ""),
+            prepared_writer_secret_file=os.getenv("BI_PREPARED_WRITER_SECRET_FILE", ""),
+            preparation_polling_enabled=os.getenv("BI_PREPARATION_POLLING_ENABLED", "false").lower() == "true",
             issuer=os.getenv("BI_OIDC_ISSUER", ""),
             audience=os.getenv("BI_OIDC_AUDIENCE", "synapse-bi-api"),
             jwks_url=os.getenv("BI_OIDC_JWKS_URL", ""),
@@ -56,6 +60,8 @@ class Settings:
             raise ValueError("Unknown BI_ENVIRONMENT")
         if self.auth_mode not in {"development", "oidc"}:
             raise ValueError("Unknown BI_AUTH_MODE")
+        if self.preparation_polling_enabled and self.environment == "production":
+            raise ValueError("CDC preparation polling is laboratory-only")
         if self.auth_mode == "development" and self.environment not in {"development", "test"}:
             raise ValueError("Development authentication is forbidden in production")
         if self.seed_demo and self.environment == "production":

@@ -37,8 +37,8 @@ BEGIN
  IF actual <> expected THEN RAISE EXCEPTION 'Expected deterministic 2x tenant scale'; END IF;
  IF (SELECT count(*) FROM gold.v_inventory_latest) <> 48 THEN RAISE EXCEPTION 'Expected latest snapshots only: 2*3*8'; END IF;
  IF (SELECT count(DISTINCT snapshot_date_key) FROM gold.v_inventory_latest) <> 1 THEN RAISE EXCEPTION 'Inventory has mixed dates'; END IF;
- IF (SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='gold' AND c.relkind='r' AND c.relrowsecurity AND c.relforcerowsecurity) <> 10 THEN
-   RAISE EXCEPTION 'All 10 tenant tables require forced RLS';
+ IF (SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='gold' AND c.relkind='r' AND c.relrowsecurity AND c.relforcerowsecurity) <> 11 THEN
+   RAISE EXCEPTION 'All 11 tenant tables require forced RLS';
  END IF;
  IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname IN ('bi_reader_global','bi_reader_other') AND (rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls)) THEN
    RAISE EXCEPTION 'Reader has elevated privileges';

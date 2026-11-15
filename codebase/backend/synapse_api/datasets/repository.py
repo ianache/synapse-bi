@@ -76,6 +76,59 @@ class DatasetRepository:
             self.conn.execute("INSERT INTO dataset_inputs VALUES(?,?,?,?,?,?,?,?)",
                 (self.user.tenant, dataset_id, index, origin.source_id, origin.observation_id, origin.schema, origin.object, json.dumps(origin.metadata)))
 
+    def register_prepared_output(self, dataset_id, input_dataset_id, name, process_reference, timestamp):
+        """Create a catalog record backed by a prepared versioned relation."""
+        source = self._row(input_dataset_id)
+        input_body = self._body(source)
+        input_origin = input_body.origin
+        if not input_body.selected_columns:
+            raise ApiError(422, "prepared_input_unavailable", "El dataset de entrada no tiene columnas seleccionadas.")
+
+        metadata = json.loads(source["source_metadata_document"])
+        metadata = {**metadata, "schema": "prepared", "name": "current_sales_state", "kind": "table",
+                    "comment": "Estado vigente por versión de un dataset preparado con CDC."}
+        governance = {
+            "owner": source["owner_declared"],
+            "classification": source["classification_declared"],
+            "freshnessExpectation": source["freshness_expectation"],
+            "loadReference": None,
+        }
+        complete_governance = all(governance[key] and governance[key].strip()
+                                  for key in ("owner", "classification", "freshnessExpectation"))
+        body = SaveDataset(
+            name=name,
+            description=f"Salida preparada por CDC de {source['name']}.",
+            kind="prepared",
+            saveAs="registered" if complete_governance else "draft",
+            origin=Origin(sourceId=input_origin.source_id, observationId=input_origin.observation_id,
+                          schema="prepared", object="current_sales_state"),
+            selectedColumns=[column["name"] for column in metadata["columns"]],
+            governance=governance,
+            preparation={"processReference": process_reference,
+                         "inputOrigins": [input_origin]},
+        )
+        selected = set(body.selected_columns)
+        selected_columns = [column for column in metadata["columns"] if column["name"] in selected]
+        if {column["name"] for column in selected_columns} != selected:
+            raise ApiError(503, "prepared_metadata_unavailable", "No se pudieron resolver las columnas declaradas del origen.")
+
+        self.conn.execute("""INSERT INTO dataset_registry(name,normalized_name,description,registration_status,
+            owner_declared,classification_declared,freshness_expectation,load_reference,process_reference,medallion_document,updated_at,
+            tenant_id,id,kind,source_id,observation_id,schema_name,object_name,source_metadata_document,created_by,created_at,version)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)""",
+            (body.name, normalize_name(body.name), body.description, body.save_as,
+             governance["owner"], governance["classification"], governance["freshnessExpectation"], None,
+             process_reference, None, timestamp, self.user.tenant, dataset_id, "prepared",
+             input_origin.source_id, input_origin.observation_id, "prepared", "current_sales_state",
+             json.dumps(metadata, ensure_ascii=False), self.user.subject, timestamp))
+        for column in selected_columns:
+            self.conn.execute("INSERT INTO dataset_columns VALUES(?,?,?,?)",
+                              (self.user.tenant, dataset_id, column["name"], column["position"]))
+        self.conn.execute("INSERT INTO dataset_inputs VALUES(?,?,?,?,?,?,?,?)",
+            (self.user.tenant, dataset_id, 1, input_origin.source_id, input_origin.observation_id,
+             input_origin.schema_name, input_origin.object, source["source_metadata_document"]))
+        return self._dto(self._row(dataset_id))
+
     def _request(self, key, timestamp):
         return self.conn.execute("""SELECT * FROM dataset_requests
             WHERE tenant_id=? AND subject=? AND operation='datasets.create' AND key=? AND expires_at>?""",

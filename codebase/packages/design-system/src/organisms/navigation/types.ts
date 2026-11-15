@@ -19,6 +19,7 @@ export type MenubarProps = {
   mobileOpen: boolean
   onMobileClose: () => void
   onNavigate?: (href: string) => void
+  mobileBrand?: { label: string; subtitle?: string }
   className?: string
 }
 export type MainbarProps = {
@@ -29,5 +30,6 @@ export type MainbarProps = {
   mobileMenuOpen: boolean
   onMobileMenuToggle: () => void
   onNavigate?: (href: string) => void
+  mobileBrand?: { label: string; subtitle?: string }
   className?: string
 }
